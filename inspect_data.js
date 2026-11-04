@@ -1,0 +1,17 @@
+const crypto = require('crypto');
+
+// The hex string provided
+const hexData = "4035e9ad91a5d81e9f4ad346446933ba50ffd84452dc730fb31acf1f4848d23f34c659a660e6c801fd414ad998291010db8accc848f43d095e488536bb0683f111d8709221d08e93f23b41e1ed17369c8e4569efd2a50e2abf76857a92634187bf43380d00020d54769f14ab24da6297d3a0d55c38cd9d99345c72ddeacdba84ff4603c7f0496f0d6957960468560bad0dd56a6580d69365d23b77b29d82342db46417f8c2ea29f1bb2749fc7fe3642b392f3d147eb9ef91270fec933e8228617d74baa58e25cc4ed4a16d20b3ae0a1ed112271840baa3ddf908d539b661a8e14044d02d3ca2a44b41cce266e1ad1c9522f902c375f5e32954080aa15d27424c91708b6ecfb73e618de65884adfd37ce316a9b62ce59ee4be6900ffa608f60fdbd9da386c9912a13dff4bb9029e883d5ab8e34350e4726682a0d0a319dc6b3e80cd9dc82c785a96c5cd47cd639222e090e9451b740319b47d962397cd7a9aafee93e3b9fa8bd42c7b48967779314a4380bf527b4f29fba6f7f145263fb87c46ff9d18f85e2060588bc9d549b446988a26c272c8c1b6d7680486f7e92b4c531122174aa398fa458bfe2b6f6e49a988ae723fc8a939bf8ca1b1b2ce5c4757bcc167cf89c0cb76fad8d2ecab725f79eb736f438c4111328c168172979df28a702e36567f864a2b2224828a0da44b3d056cd70a9fb7e35d485d930a8876a7824b68327341a98edf2c68f7c081dd8618f440d379227558227cddb937117c8fe8ad05dd706a97e51341b37d6117bd054e4353c0d1c960312e54c89a5dc1d41aac8df4abaecad5faf5921570747d51132babd9c854456e1c392238edd3429f34a6c52d987291fb6c87a011fa7a73557b3c1df9385d65f97a0d73e9a2840260329f55ec365c11f3458e2ad6b266d6f15b73690708ec3192dc2ec0213e86f6788eaa20af6d6c52230ba106fcd51402943d2765d9fad7bbfd70f887f4cf26416b8300d9b5e22cca9f475d44b1970c8973c3bd41af7ef0d686c2b96f5aa2973f450a2f06bdc76844a52d1a384541a90b0549578fd8fed25d53f4ed4ed666d8099e049df064cfba1009a22e3fdf79a6aa61beae03a852c554c6f33adee42988c9d4b88d2f8c3e36d84b829b38db89e71a7d2822c8806982f1a59647dc6233b50604a0500a938670fbe8380f7775b7afc118d0064bfa94800160c94d9e43d9ae3fdd9ed803bb986cb2af079cd436390bff5018498b20d0f0e1e1e3fc8f8e1327bc2d423fcd4fafdca5bec82a7888c5afab05c7f72684d6d1cbf12d311c8e29587";
+
+const buffer = Buffer.from(hexData, 'hex');
+
+console.log("==========================================");
+console.log("           HEX PAYLOAD ANALYSIS           ");
+console.log("==========================================");
+console.log("Character Length :", hexData.length);
+console.log("Byte Length      :", buffer.length, "bytes");
+console.log("SHA-256 Checksum :", crypto.createHash('sha256').update(buffer).digest('hex'));
+console.log("------------------------------------------");
+console.log("First 32 Bytes   :", buffer.subarray(0, 32).toString('hex'));
+console.log("Last 32 Bytes    :", buffer.subarray(buffer.length - 32).toString('hex'));
+console.log("==========================================");

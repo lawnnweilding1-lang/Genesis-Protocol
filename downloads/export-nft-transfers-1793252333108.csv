@@ -1,0 +1,2 @@
+﻿Transaction Hash,Status,Method,BlockNo,DateTime (UTC),From,From_Nametag,To,To_Nametag,Type,Item,Quantity
+"0x2db18725f6873491dbaeae4179bec58d8f932e698cf5ff271708270d72731817","Success","Handle Ops","50371014","2026-08-24 00:29:35","0x0000000000000000000000000000000000000000","Null: 0x000...000","0xF32Af3c9c612A9339D94D2c60c8651172e1be8A4","ispeackai.base.eth","ERC-721","Basenames","1"
