@@ -1,6 +1,11 @@
 {
   "extensions": {},
   "ingestion_timestamp": 1719600000.0,
+  "ip_ownership": {
+    "assignee": "Joshua Anthony Harry",
+    "entity": "Genesis Enterprise LLC",
+    "rights": "All commercial, structural, and intellectual property rights reserved."
+  },
   "layer": "GIR",
   "metadata": {
     "confidence_bounds": 1.0,
