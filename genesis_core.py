@@ -1,63 +1,39 @@
 import json
 import hashlib
+import os
+import subprocess
 
-def canonicalize(data):
-    """
-    Serializes a dictionary deterministically according to Genesis v2.0.0 rules:
-    - UTF-8 encoding
-    - Sorted keys
-    - Minimized whitespace
-    """
-    return json.dumps(data, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+def canonical_hash_gir(data: dict) -> str:
+    target = data.copy()
+    target.pop("provenance_hash", None)
+    target.pop("stream_hash", None)
+    canonical_json = json.dumps(target, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
+    return hashlib.sha256(canonical_json.encode('utf-8')).hexdigest()
 
-def compute_hash(data, layer_type):
-    """
-    Computes SHA-256 integrity hash with the respective hash field omitted.
-    """
-    clean_data = data.copy()
-    if layer_type == "GIR":
-        clean_data.pop("provenance_hash", None)
-    elif layer_type == "GLIR":
-        clean_data.pop("stream_hash", None)
-    
-    canonical_string = canonicalize(clean_data)
-    return hashlib.sha256(canonical_string.encode('utf-8')).hexdigest()
+# Define Master Spec Payload
+payload = {
+    "layer": "GIR",
+    "spec_version": "2.0.0",
+    "ingestion_timestamp": 1719600000.0,
+    "metadata": {
+        "source": "apex_architectures_terminal",
+        "type": "event_log",
+        "confidence_bounds": 1.0
+    },
+    "payload": {
+        "content": "Genesis Framework Sovereign State Integrity Protocol",
+        "uncertainty_flags": [],
+        "conflicting_assertions": []
+    },
+    "extensions": {}
+}
 
-def validate_genesis_payload(payload_json_str):
-    """
-    Sequential validation pipeline executing error checks GEN-001 through GEN-005.
-    """
-    try:
-        data = json.loads(payload_json_str)
-    except Exception as e:
-        return {"status": "REJECTED", "error_code": "GEN-005", "message": f"Malformed JSON: {str(e)}"}
-    
-    # Check Layer
-    layer = data.get("layer")
-    if layer not in ["GIR", "GLIR"]:
-        return {"status": "REJECTED", "error_code": "GEN-004", "message": "Missing or invalid layer identifier."}
-    
-    # Check Version
-    if data.get("spec_version") != "2.0.0":
-        return {"status": "REJECTED", "error_code": "GEN-001", "message": "Unsupported or missing spec_version."}
-    
-    # Check Required Fields based on layer
-    if layer == "GIR":
-        if not all(k in data for k in ["metadata", "payload", "provenance_hash"]):
-            return {"status": "REJECTED", "error_code": "GEN-002", "message": "Missing mandatory GIR fields."}
-        expected_hash = compute_hash(data, "GIR")
-        if data["provenance_hash"] != expected_hash:
-            return {"status": "REJECTED", "error_code": "GEN-003", "message": "GIR cryptographic hash mismatch detected."}
-            
-    elif layer == "GLIR":
-        if not all(k in data for k in ["tensor_stream", "stream_hash"]):
-            return {"status": "REJECTED", "error_code": "GEN-002", "message": "Missing mandatory GLIR fields."}
-        expected_hash = compute_hash(data, "GLIR")
-        if data["stream_hash"] != expected_hash:
-            return {"status": "REJECTED", "error_code": "GEN-003", "message": "GLIR cryptographic stream hash mismatch detected."}
+# Compute Hash
+payload["provenance_hash"] = canonical_hash_gir(payload)
 
-    return {"status": "CONFORMANT", "error_count": 0, "errors": []}
+# Write out file
+with open("genesis_spec_sealed.json", "w") as f:
+    json.dump(payload, f, indent=2, sort_keys=True)
 
-if __name__ == "__main__":
-    print("Genesis Reference Engine v2.0.0 Initialized.")
-
+print("[+] Sealed Genesis Protocol Specification Generated.")
+print(f"[+] Provenance Hash: {payload['provenance_hash']}")

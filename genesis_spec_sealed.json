@@ -1,0 +1,17 @@
+{
+  "extensions": {},
+  "ingestion_timestamp": 1719600000.0,
+  "layer": "GIR",
+  "metadata": {
+    "confidence_bounds": 1.0,
+    "source": "apex_architectures_terminal",
+    "type": "event_log"
+  },
+  "payload": {
+    "conflicting_assertions": [],
+    "content": "Genesis Framework Sovereign State Integrity Protocol",
+    "uncertainty_flags": []
+  },
+  "provenance_hash": "5fd2903ec1be414eeb79553f2aa7ee6c47be071523a578efc07e38785584ffde",
+  "spec_version": "2.0.0"
+}
