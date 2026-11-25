@@ -1,0 +1,144 @@
+{
+  "abc_result": {
+    "a_digest": "5002f6576915db8ea8c9f2589230799ce6c21f0f3ebbf7312d51f3e665038881",
+    "b_digest": "02fe7be697b50f4ebd6d6dc43c6c22472bbf4ff6fc8340a48a4444c116ba9503",
+    "b_total_count": 5,
+    "c_digest": "1c892724cdce5f4872a568299f303f654c24d2eafa9f5c0cf5c8ab0ec6e403a7",
+    "c_state": {
+      "closure_status": "PARTIAL_WITH_OPEN_UNRESOLVED",
+      "resolved_facts": {
+        "declared_status": "DELIVERED",
+        "parcel_id": "DL-001",
+        "receiver_confirmed": true,
+        "weight_kg": 12.5
+      },
+      "unresolved_count": 5,
+      "unresolved_open_container": [
+        {
+          "conflict_kind": "CONTRADICTS_PRIOR_A_CLAIM",
+          "conflicting_value_in_a": "IN_TRANSIT",
+          "digest": "26125b7d01fbdaaef6af1812060c79e3c2e8a26ac1bec84531c5e1aee48ebb36",
+          "key": "declared_status",
+          "prior_index": 0,
+          "prior_value": "DELIVERED",
+          "raw_preserved": {
+            "key": "declared_status",
+            "value": "IN_TRANSIT"
+          },
+          "reason": "INTERNAL_CONTRADICTION_IN_A",
+          "source": "A",
+          "source_index": 1
+        },
+        {
+          "conflicting_value_in_b": "RETURNED_TO_SENDER",
+          "digest": "b8f8151a577cc8974cd82f39679fa68c624fa6db905cccd56b0db2aa1f0381df",
+          "key": "declared_status",
+          "raw_preserved": {
+            "key": "declared_status",
+            "value": "RETURNED_TO_SENDER"
+          },
+          "reason": "CONTRADICTION_WITH_A",
+          "source": "B",
+          "source_index": 1,
+          "value_in_a": "DELIVERED"
+        },
+        {
+          "digest": "f97cd6892bd4bd29d7ac0a1771139ca5e66c7ecc5fddd643cbd3f477bec9f481",
+          "raw_preserved": {
+            "key": "receiver_confirmed",
+            "value": true
+          },
+          "reason": "DUPLICATE_INPUT",
+          "source": "B",
+          "source_index": 2
+        },
+        {
+          "digest": "89c79636a5f5832645d038c7392c07a30294d88ce969da468175bad39eee19c6",
+          "raw_preserved": {
+            "key": "missing_value_field"
+          },
+          "reason": "CORRUPTED_OR_MISSING_FIELDS",
+          "source": "B",
+          "source_index": 3
+        },
+        {
+          "digest": "98095d71338355c564d96e41e49865212d5d85a071ecea39048674fe2cc09653",
+          "raw_preserved": {
+            "corrupted": true,
+            "key": "weight_kg",
+            "value": 99.9
+          },
+          "reason": "CORRUPTED_OR_MISSING_FIELDS",
+          "source": "B",
+          "source_index": 4
+        }
+      ]
+    },
+    "equation": "A + B = C (OPEN_CONTAINER_PRESERVED)"
+  },
+  "chain_errors": [],
+  "chain_valid": true,
+  "collaboration_chain": [
+    {
+      "artifact_id": "GENESIS_SUBSTRATE_ADC02",
+      "event_sha256": "9a0c42465b0468cb3baa2e10f2781a270cd78b53b104de68a8e05bb0fe790131",
+      "human_disposition": "ACCEPTED_FOR_TEST_COPY",
+      "lifecycle_state": "STAGED",
+      "participant": "ChatGPT_Reviewer",
+      "prev_event_sha256": null,
+      "returned_summary": "Open container + chain",
+      "schema_version": 4,
+      "seq": 0,
+      "source_hash": "adcdae38ee4590e4a0d3d968e87e09d2bf205a434808caead3e6b66a576ece02",
+      "state_after": "1c892724cdce5f4872a568299f303f654c24d2eafa9f5c0cf5c8ab0ec6e403a7",
+      "state_before": null,
+      "task": "v4 A+B=C audit",
+      "timestamp_utc": 1795478400,
+      "unresolved_items": [
+        "T01-T11 pending"
+      ]
+    },
+    {
+      "artifact_id": "GENESIS_SUBSTRATE_ADC02",
+      "event_sha256": "7d7d8783d77c23b9aaea1439ed5db75e8ef066e45d10a34fbc0c03114343ed54",
+      "human_disposition": "PENDING_HUMAN_RUN",
+      "lifecycle_state": "COMMITTED_PENDING_FINALIZE",
+      "participant": "Gemini_Reviewer",
+      "prev_event_sha256": "9a0c42465b0468cb3baa2e10f2781a270cd78b53b104de68a8e05bb0fe790131",
+      "returned_summary": "Chain verified",
+      "schema_version": 4,
+      "seq": 1,
+      "source_hash": "adcdae38ee4590e4a0d3d968e87e09d2bf205a434808caead3e6b66a576ece02",
+      "state_after": "1c892724cdce5f4872a568299f303f654c24d2eafa9f5c0cf5c8ab0ec6e403a7",
+      "state_before": "1c892724cdce5f4872a568299f303f654c24d2eafa9f5c0cf5c8ab0ec6e403a7",
+      "task": "v4 verify",
+      "timestamp_utc": 1795478400,
+      "unresolved_items": [
+        "T09/T11 pending"
+      ]
+    },
+    {
+      "artifact_id": "GENESIS_SUBSTRATE_ADC02",
+      "event_sha256": "fc1a137851246fccb651444f3599ebd5c067a095e8d9e67028275ec7247d697b",
+      "human_disposition": "ACCEPTED_FOR_TEST_COPY",
+      "lifecycle_state": "FINALIZED",
+      "participant": "Human_Operator",
+      "prev_event_sha256": "7d7d8783d77c23b9aaea1439ed5db75e8ef066e45d10a34fbc0c03114343ed54",
+      "returned_summary": "Ready for isolated test",
+      "schema_version": 4,
+      "seq": 2,
+      "source_hash": "adcdae38ee4590e4a0d3d968e87e09d2bf205a434808caead3e6b66a576ece02",
+      "state_after": "1c892724cdce5f4872a568299f303f654c24d2eafa9f5c0cf5c8ab0ec6e403a7",
+      "state_before": "1c892724cdce5f4872a568299f303f654c24d2eafa9f5c0cf5c8ab0ec6e403a7",
+      "task": "v4 finalize",
+      "timestamp_utc": 1795478400,
+      "unresolved_items": [
+        "head anchor pending"
+      ]
+    }
+  ],
+  "negative_tests_all_expected": true,
+  "preservation_errors": [],
+  "repro_ts": 1795478400,
+  "schema_version": 4
+}
