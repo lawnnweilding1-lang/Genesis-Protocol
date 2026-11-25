@@ -1,0 +1,37 @@
+{
+  "record_id": "GENESIS_CANONICAL_ROOT",
+  "mode": "SINGLE MASTER STATE RECORD",
+  "integrity_status": "SEALED",
+  "gatekeeper": "GATEKEEPER v4.0 PASS",
+  "nonce": "F6",
+  "projection_modules": {
+    "executive_view": {
+      "label": "PROJECTION: EXECUTIVE VIEW",
+      "canonical_status": "WONT_FIX / INTENDED_BEHAVIOR"
+    },
+    "researcher_view": {
+      "label": "PROJECTION: RESEARCHER VIEW",
+      "notes": "Lossy summary of Researcher Interpretations (e.g., chain failure theory)"
+    },
+    "audit_full_view": {
+      "label": "PROJECTION: AUDIT/FULL VIEW",
+      "ingestion": "Full, unfiltered dataset ingestion",
+      "canonical_hash_display_alias": "SHA-256 [C4E...FULL_64_CHAR_DIGEST...F6]"
+    },
+    "restricted_view": {
+      "label": "PROJECTION: RESTRICTED VIEW",
+      "mathematical_layer_mechanism": "WITHHELD / NOT_PUBLICLY_DISCLOSED",
+      "access": "Authorized Viewers Only"
+    }
+  },
+  "state_separation_rules": [
+    "PROJECTION MUST NOT MANUFACTURE INFO.",
+    "PROJECTION STATE != CANONICAL ROOT STATE.",
+    "DISPLAY ALIAS [C4E...F6] != DIGEST.",
+    "AI_ATTESTATION != FACT_VERIFICATION"
+  ],
+  "decode_procedure": {
+    "label": "AUTHORIZED CANONICAL DECODE",
+    "instruction": "Scan to verify complete raw JSON/Markdown payload."
+  }
+}
