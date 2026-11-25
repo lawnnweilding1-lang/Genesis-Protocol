@@ -1,0 +1,1965 @@
+        psk_mac = hmac.new(
+            self._psk,
+            canonical_bytes + self._gatekeeper_pass.en
+code("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        return {
+            "master_state": master_state,
+            "canonical_root_hash": canonical_root_hash
+,
+            "display_alias": f"{canonical_root_hash[:3
+].upper()}...{canonical_root_hash[-2:].upper()}",
+            "factor_2_psk_seal": psk_mac,
+            "_restricted_payload_bytes": restricted_by
+tes,
+        }
+
+    def verify_and_project(
+        self,
+        sealed_record: Dict[str, Any],
+        view_role: str,
+        provided_passphrase: str = "",
+    ) -> Dict[str, Any]:
+        canonical_bytes = self.canonical_serialize(sea
+led_record["master_state"])
+        recomputed_hash = hashlib.sha256(canonical_byt
+es).hexdigest()
+
+        if not hmac.compare_digest(recomputed_hash, se
+aled_record["canonical_root_hash"]):
+            raise ValueError("INTEGRITY FAILURE: Canon
+ical root hash mismatch.")
+
+        expected_mac = hmac.new(
+            self._psk,
+            canonical_bytes + self._gatekeeper_pass.en
+code("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(expected_mac, seale
+d_record["factor_2_psk_seal"]):
+            raise PermissionError("AUTH FAILURE: Out-o
+f-band PSK seal invalid.")
+
+        if view_role == "EXECUTIVE":
+            return {
+                "projection": "EXECUTIVE_VIEW",
+                "status": "SEALED / VERIFIED",
+                "display_alias": sealed_record["displa
+y_alias"],
+                "nonce": sealed_record["master_state"]
+["nonce"],
+                "format_families_count": len(self.form
+at_registry),
+            }
+        elif view_role == "AUDIT_FULL":
+            return {
+                "projection": "AUDIT_FULL_VIEW",
+                "canonical_root_hash": recomputed_hash
+,
+                "public_patterns": sealed_record["mast
+er_state"]["public_fork"],
+            }
+        elif view_role == "RESTRICTED":
+            if not hmac.compare_digest(provided_passph
+rase, self._gatekeeper_pass):
+                raise PermissionError("LOCKED: Awaitin
+g valid CEO Gatekeeper passphrase.")
+            return {
+                "projection": "RESTRICTED_VIEW",
+                "canonical_root_hash": recomputed_hash
+,
+                "restricted_layer": json.loads(
+                    sealed_record["_restricted_payload
+_bytes"].decode("utf-8")
+                ),
+            }
+        else:
+            raise ValueError(f"Unknown projection role
+: {view_role}")
+
+
+if __name__ == "__main__":
+    engine = GenesisMasterSubstrate(
+        pre_shared_key=b"tetrahedron-star-psk-test-key
+",
+        gatekeeper_pass="GATEKEEPER_V4_TEST_OVERRIDE",
+
+    )
+
+    engine.set_format_placeholder(
+        "documents_text", ".pdf", sha256_digest="sampl
+e_pdf_digest_placeholder"
+    )
+
+    qr_matrix = engine.build_qr_channel_matrix(
+        red_restricted_pointer="LOCKED_FORK_02_RED_LAN
+E",
+        cyan_telemetry_stream="ARRAY_1_TO_4_384KHZ_32F
+",
+        yellow_routing_nonce="NONCE_F6",
+        black_root_anchor="GENESIS_CANONICAL_ROOT",
+    )
+
+    sealed = engine.seal_master_block(
+        nonce="F6",
+        binary_stream_hex="010111000011000000000101111
+0",
+        acoustic_signature={
+            "sensor_config": "4-Pt Tetrahedron (Star)
+PSK",
+            "sample_rate_khz": 384.0,
+            "bit_depth": "32-Bit Float",
+            "resonant_heart_anchor": "Verified Bedrock
+ Connect",
+        },
+        sphere_3d_grid={
+            "grid_type": "HIGH-DENSITY 3D_SPHERE_GRID"
+,
+            "density": "MAX",
+            "rgb_mapping": "0x01/0x02",
+        },
+        json_manifest={
+            "manifest_id": "GENESIS_MASTER_BLOCK_v2.3"
+,
+            "assertion": "We do not try; we do.",
+        },
+        optical_qr_channels=qr_matrix,
+        restricted_math_layer={
+            "restricted_scope": "DEEP_BLOCK_RESTRICTED
+_VIEW",
+            "mode": "CHESS_STRATEGIC",
+        },
+    )
+
+    print("EXECUTIVE:", engine.verify_and_project(seal
+ed, "EXECUTIVE"))
+    try:
+        engine.verify_and_project(sealed, "RESTRICTED"
+, provided_passphrase="WRONG")
+    except PermissionError as err:
+        print("RESTRICTED_BLOCKED:", err)
+    print(
+        "RESTRICTED_UNLOCKED:",
+        engine.verify_and_project(
+            sealed, "RESTRICTED", provided_passphrase=
+"GATEKEEPER_V4_TEST_OVERRIDE"
+        ),
+    )
+EOF
+python3 genesis_substrate.py
+EXECUTIVE: {'projection': 'EXECUTIVE_VIEW', 'status':
+'SEALED / VERIFIED', 'display_alias': '9D2...31', 'non
+ce': 'F6', 'format_families_count': 8}
+RESTRICTED_BLOCKED: LOCKED: Awaiting valid CEO Gatekee
+per passphrase.
+RESTRICTED_UNLOCKED: {'projection': 'RESTRICTED_VIEW',
+ 'canonical_root_hash': '9d2e5c7edfeb32dfd456332d0d982
+37e1b5445b4bf1acae178519ac96df89731', 'restricted_laye
+r': {'mode': 'CHESS_STRATEGIC', 'restricted_scope': 'D
+EEP_BLOCK_RESTRICTED_VIEW'}}
+~ $ ls -la genesis_substrate.py && tail -n 25 genesis_
+substrate.py
+-rw-------. 1 u0_a314 u0_a314 8690 Nov 24 15:40 genesi
+s_substrate.py
+            "density": "MAX",
+            "rgb_mapping": "0x01/0x02",
+        },
+        json_manifest={
+            "manifest_id": "GENESIS_MASTER_BLOCK_v2.3"
+,
+            "assertion": "We do not try; we do.",
+        },
+        optical_qr_channels=qr_matrix,
+        restricted_math_layer={
+            "restricted_scope": "DEEP_BLOCK_RESTRICTED
+_VIEW",
+            "mode": "CHESS_STRATEGIC",
+        },
+    )
+
+    print("EXECUTIVE:", engine.verify_and_project(seal
+ed, "EXECUTIVE"))
+    try:
+        engine.verify_and_project(sealed, "RESTRICTED"
+, provided_passphrase="WRONG")
+    except PermissionError as err:
+        print("RESTRICTED_BLOCKED:", err)
+    print(
+        "RESTRICTED_UNLOCKED:",
+        engine.verify_and_project(
+            sealed, "RESTRICTED", provided_passphrase=
+"GATEKEEPER_V4_TEST_OVERRIDE"
+        ),
+    )
+~ $ python3 genesis_substrate.py
+EXECUTIVE: {'projection': 'EXECUTIVE_VIEW', 'status':
+'SEALED / VERIFIED', 'display_alias': 'D3F...F8', 'non
+ce': 'F6', 'format_families_count': 8}
+RESTRICTED_BLOCKED: LOCKED: Awaiting valid CEO Gatekee
+per passphrase.
+RESTRICTED_UNLOCKED: {'projection': 'RESTRICTED_VIEW',
+ 'canonical_root_hash': 'd3f8af15c37dfb95503862089dad7
+70014435f82b0347f912eb8d1bb12a6d0f8', 'restricted_laye
+r': {'mode': 'CHESS_STRATEGIC', 'restricted_scope': 'D
+EEP_BLOCK_RESTRICTED_VIEW'}}
+~ $
+~ $
+~ $ cat << 'EOF' > genesis_substrate.py
+import hashlib
+import hmac
+import json
+import os
+import time
+from typing import Any, Dict, Optional
+
+
+FILE_FORMAT_PLACEHOLDERS: Dict[str, Dict[str, Any]] =
+{
+    "documents_text": {
+        "formats": [".pdf", ".docx", ".txt", ".md"],
+        "slots": {f: {"status": "PLACEHOLDER_READY", "
+sha256": None, "path": None} for f in [".pdf", ".docx"
+, ".txt", ".md"]},
+    },
+    "spreadsheets_tables": {
+        "formats": [".csv", ".xlsx", ".ods"],
+        "slots": {f: {"status": "PLACEHOLDER_READY", "
+sha256": None, "path": None} for f in [".csv", ".xlsx"
+, ".ods"]},
+    },
+    "structured_data_manifests": {
+        "formats": [".json", ".jsonl", ".yaml", ".xml"
+, ".toml"],
+        "slots": {f: {"status": "PLACEHOLDER_READY", "
+sha256": None, "path": None} for f in [".json", ".json
+l", ".yaml", ".xml", ".toml"]},
+    },
+    "databases_ledgers": {
+        "formats": [".sqlite", ".sql", ".parquet"],
+        "slots": {f: {"status": "PLACEHOLDER_READY", "
+sha256": None, "path": None} for f in [".sqlite", ".sq
+l", ".parquet"]},
+    },
+    "images_optical": {
+        "formats": [".png", ".jpg", ".webp", ".svg", "
+.tiff"],
+        "slots": {f: {"status": "PLACEHOLDER_READY", "
+sha256": None, "path": None} for f in [".png", ".jpg",
+ ".webp", ".svg", ".tiff"]},
+    },
+    "audio_sensor_media": {
+        "formats": [".wav", ".mp3", ".mp4", ".bin"],
+        "slots": {f: {"status": "PLACEHOLDER_READY", "
+sha256": None, "path": None} for f in [".wav", ".mp3",
+ ".mp4", ".bin"]},
+    },
+    "code_scripts_wasm": {
+        "formats": [".py", ".rs", ".go", ".wasm"],
+        "slots": {f: {"status": "PLACEHOLDER_READY", "
+sha256": None, "path": None} for f in [".py", ".rs", "
+.go", ".wasm"]},
+    },
+    "archives_crypto_cad": {
+        "formats": [".zip", ".tar.gz", ".pem", ".stl"]
+,
+        "slots": {f: {"status": "PLACEHOLDER_READY", "
+sha256": None, "path": None} for f in [".zip", ".tar.g
+z", ".pem", ".stl"]},
+    },
+}
+
+
+class GenesisMasterSubstrate:
+    def __init__(self, pre_shared_key: bytes, gatekeep
+er_pass: str):
+        self._psk = pre_shared_key
+        self._gatekeeper_pass = gatekeeper_pass
+        self.format_registry = json.loads(json.dumps(F
+ILE_FORMAT_PLACEHOLDERS))
+
+    @staticmethod
+    def canonical_serialize(payload: Dict[str, Any]) -
+> bytes:
+        return json.dumps(
+            payload, sort_keys=True, separators=(",",
+":"), ensure_ascii=True
+        ).encode("utf-8")
+
+    @staticmethod
+    def compute_file_sha256(file_path: str) -> str:
+        h = hashlib.sha256()
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(65536), b
+""):
+                h.update(chunk)
+        return h.hexdigest()
+
+    def set_format_placeholder(
+        self,
+        family: str,
+        ext: str,
+        sha256_digest: Optional[str] = None,
+        source_path: Optional[str] = None,
+        status_label: str = "PLACEHOLDER_READY",
+    ) -> None:
+        if family not in self.format_registry:
+            raise KeyError(f"Unknown format family: {f
+amily}")
+        if ext not in self.format_registry[family]["sl
+ots"]:
+            raise KeyError(f"Extension {ext} not regis
+tered in {family}")
+        self.format_registry[family]["slots"][ext] = {
+
+            "status": "BOUND" if sha256_digest else st
+atus_label,
+            "sha256": sha256_digest,
+            "path": source_path,
+        }
+
+    def bind_local_file(self, family: str, ext: str, f
+ile_path: str) -> str:
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f"Target file not
+found: {file_path}")
+        digest = self.compute_file_sha256(file_path)
+        self.set_format_placeholder(family, ext, sha25
+6_digest=digest, source_path=file_path)
+        return digest
+
+    def registry_summary(self) -> Dict[str, Any]:
+        total_slots = 0
+        bound_slots = 0
+        ready_slots = 0
+        for fam in self.format_registry.values():
+            for slot in fam["slots"].values():
+                total_slots += 1
+                if slot["status"] == "BOUND":
+                    bound_slots += 1
+                else:
+                    ready_slots += 1
+        return {
+            "families": len(self.format_registry),
+            "total_slots": total_slots,
+            "bound_slots": bound_slots,
+            "placeholder_ready_slots": ready_slots,
+        }
+
+    @staticmethod
+    def build_qr_channel_matrix(
+        red_restricted_pointer: str,
+        cyan_telemetry_stream: str,
+        yellow_routing_nonce: str,
+        black_root_anchor: str,
+    ) -> Dict[str, str]:
+        return {
+            "matrix_mode": "OPTICAL_QUAD_CHANNEL_2FA",
+
+            "red_channel_gated_lane": red_restricted_p
+ointer,
+            "cyan_channel_signal_lane": cyan_telemetry
+_stream,
+            "yellow_channel_nonce_lane": yellow_routin
+g_nonce,
+            "black_channel_root_anchor": black_root_an
+chor,
+        }
+
+    def seal_master_block(
+        self,
+        nonce: str,
+        binary_stream_hex: str,
+        acoustic_signature: Dict[str, Any],
+        sphere_3d_grid: Dict[str, Any],
+        json_manifest: Dict[str, Any],
+        optical_qr_channels: Dict[str, str],
+        restricted_math_layer: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        public_patterns = {
+            "01_binary_stream": binary_stream_hex,
+            "02_acoustic_waveform": acoustic_signature
+,
+            "03_spatial_3d_topology": sphere_3d_grid,
+            "04_json_manifest": json_manifest,
+            "05_optical_qr_channels": optical_qr_chann
+els,
+            "06_file_format_placeholders": self.format
+_registry,
+            "07_registry_summary": self.registry_summa
+ry(),
+        }
+
+        restricted_bytes = self.canonical_serialize(re
+stricted_math_layer)
+        restricted_digest = hashlib.sha256(restricted_
+bytes).hexdigest()
+
+        master_state = {
+            "artifact_id": "GENESIS_CANONICAL_ROOT",
+            "nonce": nonce,
+            "timestamp_utc": int(time.time()),
+            "public_fork": public_patterns,
+            "restricted_fork_commitment": restricted_d
+igest,
+        }
+
+        canonical_bytes = self.canonical_serialize(mas
+ter_state)
+        canonical_root_hash = hashlib.sha256(canonical
+_bytes).hexdigest()
+
+        psk_mac = hmac.new(
+            self._psk,
+            canonical_bytes + self._gatekeeper_pass.en
+code("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        return {
+            "master_state": master_state,
+            "canonical_root_hash": canonical_root_hash
+,
+            "display_alias": f"{canonical_root_hash[:3
+].upper()}...{canonical_root_hash[-2:].upper()}",
+            "factor_2_psk_seal": psk_mac,
+            "_restricted_payload_bytes": restricted_by
+tes,
+        }
+
+    def verify_and_project(
+        self,
+        sealed_record: Dict[str, Any],
+        view_role: str,
+        provided_passphrase: str = "",
+    ) -> Dict[str, Any]:
+        canonical_bytes = self.canonical_serialize(sea
+led_record["master_state"])
+        recomputed_hash = hashlib.sha256(canonical_byt
+es).hexdigest()
+
+        if not hmac.compare_digest(recomputed_hash, se
+aled_record["canonical_root_hash"]):
+            raise ValueError("INTEGRITY FAILURE: Canon
+ical root hash mismatch.")
+
+        expected_mac = hmac.new(
+            self._psk,
+            canonical_bytes + self._gatekeeper_pass.en
+code("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(expected_mac, seale
+d_record["factor_2_psk_seal"]):
+            raise PermissionError("AUTH FAILURE: Out-o
+f-band PSK seal invalid.")
+
+        if view_role == "EXECUTIVE":
+            return {
+                "projection": "EXECUTIVE_VIEW",
+                "status": "SEALED / VERIFIED",
+                "display_alias": sealed_record["displa
+y_alias"],
+                "nonce": sealed_record["master_state"]
+["nonce"],
+                "registry": sealed_record["master_stat
+e"]["public_fork"]["07_registry_summary"],
+            }
+        elif view_role == "AUDIT_FULL":
+            return {
+                "projection": "AUDIT_FULL_VIEW",
+                "canonical_root_hash": recomputed_hash
+,
+                "public_patterns": sealed_record["mast
+er_state"]["public_fork"],
+            }
+        elif view_role == "RESTRICTED":
+            if not hmac.compare_digest(provided_passph
+rase, self._gatekeeper_pass):
+                raise PermissionError("LOCKED: Awaitin
+g valid CEO Gatekeeper passphrase.")
+            return {
+                "projection": "RESTRICTED_VIEW",
+                "canonical_root_hash": recomputed_hash
+,
+                "restricted_layer": json.loads(
+                    sealed_record["_restricted_payload
+_bytes"].decode("utf-8")
+                ),
+            }
+        else:
+            raise ValueError(f"Unknown projection role
+: {view_role}")
+
+
+if __name__ == "__main__":
+    engine = GenesisMasterSubstrate(
+        pre_shared_key=b"tetrahedron-star-psk-test-key
+",
+        gatekeeper_pass="GATEKEEPER_V4_TEST_OVERRIDE",
+
+    )
+
+    # Bind this script itself into code_scripts_wasm[.
+py] if present
+    if os.path.isfile("genesis_substrate.py"):
+        engine.bind_local_file("code_scripts_wasm", ".
+py", "genesis_substrate.py")
+
+    # Example placeholder binding for .pdf
+    engine.set_format_placeholder(
+        "documents_text", ".pdf", sha256_digest="sampl
+e_pdf_digest_placeholder", status_label="PLACEHOLDER_R
+EADY"
+    )
+
+    qr_matrix = engine.build_qr_channel_matrix(
+        red_restricted_pointer="LOCKED_FORK_02_RED_LAN
+E",
+        cyan_telemetry_stream="ARRAY_1_TO_4_384KHZ_32F
+",
+        yellow_routing_nonce="NONCE_F6",
+        black_root_anchor="GENESIS_CANONICAL_ROOT",
+    )
+
+    sealed = engine.seal_master_block(
+        nonce="F6",
+        binary_stream_hex="010111000011000000000101111
+0",
+        acoustic_signature={
+            "sensor_config": "4-Pt Tetrahedron (Star)
+PSK",
+            "sample_rate_khz": 384.0,
+            "bit_depth": "32-Bit Float",
+            "resonant_heart_anchor": "Verified Bedrock
+ Connect",
+        },
+        sphere_3d_grid={
+            "grid_type": "HIGH-DENSITY 3D_SPHERE_GRID"
+,
+            "density": "MAX",
+            "rgb_mapping": "0x01/0x02",
+        },
+        json_manifest={
+            "manifest_id": "GENESIS_MASTER_BLOCK_v2.3"
+,
+            "assertion": "We do not try; we do.",
+        },
+        optical_qr_channels=qr_matrix,
+        restricted_math_layer={
+            "restricted_scope": "DEEP_BLOCK_RESTRICTED
+_VIEW",
+            "mode": "CHESS_STRATEGIC",
+        },
+    )
+
+    print("EXECUTIVE:", engine.verify_and_project(seal
+ed, "EXECUTIVE"))
+    try:
+        engine.verify_and_project(sealed, "RESTRICTED"
+, provided_passphrase="WRONG")
+    except PermissionError as err:
+        print("RESTRICTED_BLOCKED:", err)
+    print(
+        "RESTRICTED_UNLOCKED:",
+        engine.verify_and_project(
+            sealed, "RESTRICTED", provided_passphrase=
+"GATEKEEPER_V4_TEST_OVERRIDE"
+        ),
+    )
+EOF
+python3 genesis_substrate.py
+EXECUTIVE: {'projection': 'EXECUTIVE_VIEW', 'status':
+'SEALED / VERIFIED', 'display_alias': 'ADC...02', 'non
+ce': 'F6', 'registry': {'families': 8, 'total_slots':
+32, 'bound_slots': 2, 'placeholder_ready_slots': 30}}
+RESTRICTED_BLOCKED: LOCKED: Awaiting valid CEO Gatekee
+per passphrase.
+RESTRICTED_UNLOCKED: {'projection': 'RESTRICTED_VIEW',
+ 'canonical_root_hash': 'adcdae38ee4590e4a0d3d968e87e0
+9d2bf205a434808caead3e6b66a576ece02', 'restricted_laye
+r': {'mode': 'CHESS_STRATEGIC', 'restricted_scope': 'D
+EEP_BLOCK_RESTRICTED_VIEW'}}
+~ $ Here is the full v4 script (`test_abc_audit_v4.py`
+) with the ending included so you can audit the signat
+ures, variables, A/B preservation, lifecycle/dispositi
+on checks, chain negative tests, deterministic proof h
+ash, and output path together before I run it in Termu
+x. Our `ADC...02` baseline (`adcdae38ee4590e4a0d3d968e
+87e09d2bf205a434808caead3e6b66a576ece02`) stays untouc
+hed.
+bash: syntax error near unexpected token `('
+~ $
+~ $
+~ $
+~ $
+~ $
+~ $
+~ $
+~ $ mkdir -p GENESIS/test_copy
+cat << 'EOF' > GENESIS/test_copy/test_abc_audit_v4.py
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+from pathlib import Path
+import time
+from typing import Any, Dict, List, Optional, Tuple
+
+SCHEMA_VERSION = 4
+REPRO_TS = 1795478400
+
+ALLOWED_DISPOSITIONS = {
+    "PENDING_HUMAN_RUN",
+    "ACCEPTED_FOR_TEST_COPY",
+    "REJECTED",
+    "ESCALATED",
+}
+
+ALLOWED_LIFECYCLE_TRANSITIONS = {
+    ("STAGED", "COMMITTED_PENDING_FINALIZE"),
+    ("STAGED", "QUARANTINED"),
+    ("COMMITTED_PENDING_FINALIZE", "FINALIZED"),
+    ("COMMITTED_PENDING_FINALIZE", "RECOVERY_REQUIRED"
+),
+    ("FINALIZED", "QUARANTINED"),
+    ("QUARANTINED", "RECOVERY_REQUIRED"),
+}
+
+
+def canonical_bytes(obj: Any) -> bytes:
+    return json.dumps(
+        obj, sort_keys=True, separators=(",", ":"), en
+sure_ascii=True
+    ).encode("utf-8")
+
+
+def sha256_of(obj: Any) -> str:
+    return hashlib.sha256(canonical_bytes(obj)).hexdig
+est()
+
+
+def reconcile_abc(
+    input_a: Dict[str, Any],
+    input_b_items: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    base_facts = {k: v for k, v in input_a.items() if
+k != "claims"}
+    a_claims: List[Any] = list(input_a.get("claims") o
+r [])
+    resolved_facts: Dict[str, Any] = dict(base_facts)
+    unresolved: List[Dict[str, Any]] = []
+
+    a_seen: Dict[str, Tuple[int, Any]] = {}
+    for i, claim in enumerate(a_claims):
+        d = sha256_of(claim)
+        if not isinstance(claim, dict) or "key" not in
+ claim or "value" not in claim:
+            unresolved.append({
+                "source": "A",
+                "source_index": i,
+                "reason": "CORRUPTED_OR_MISSING_FIELDS
+",
+                "digest": d,
+                "raw_preserved": claim,
+            })
+            continue
+
+        k, v = claim["key"], claim["value"]
+        conflict = None
+        if k in a_seen and a_seen[k][1] != v:
+            conflict = ("CONTRADICTS_PRIOR_A_CLAIM", a
+_seen[k][0], a_seen[k][1])
+        elif k in base_facts and base_facts[k] != v:
+            conflict = ("CONTRADICTS_A_BASE_FACT", Non
+e, base_facts[k])
+
+        if conflict:
+            kind, prior_idx, prior_val = conflict
+            unresolved.append({
+                "source": "A",
+                "source_index": i,
+                "reason": "INTERNAL_CONTRADICTION_IN_A
+",
+                "key": k,
+                "conflict_kind": kind,
+                "prior_index": prior_idx,
+                "prior_value": prior_val,
+                "conflicting_value_in_a": v,
+                "digest": d,
+                "raw_preserved": claim,
+            })
+        else:
+            a_seen[k] = (i, v)
+            resolved_facts.setdefault(k, v)
+
+    seen_digests = set()
+    for idx, item in enumerate(input_b_items):
+        item_digest = sha256_of(item)
+        if item_digest in seen_digests:
+            unresolved.append({
+                "source": "B",
+                "source_index": idx,
+                "reason": "DUPLICATE_INPUT",
+                "digest": item_digest,
+                "raw_preserved": item,
+            })
+            continue
+        seen_digests.add(item_digest)
+
+        if (
+            not isinstance(item, dict)
+            or item.get("corrupted") is True
+            or "key" not in item
+            or "value" not in item
+        ):
+            unresolved.append({
+                "source": "B",
+                "source_index": idx,
+                "reason": "CORRUPTED_OR_MISSING_FIELDS
+",
+                "digest": item_digest,
+                "raw_preserved": item,
+            })
+            continue
+
+        k, v = item["key"], item["value"]
+        if k in resolved_facts and resolved_facts[k] !
+= v:
+            unresolved.append({
+                "source": "B",
+                "source_index": idx,
+                "reason": "CONTRADICTION_WITH_A",
+                "key": k,
+                "value_in_a": resolved_facts[k],
+                "conflicting_value_in_b": v,
+                "digest": item_digest,
+                "raw_preserved": item,
+            })
+        else:
+            resolved_facts[k] = v
+
+    status = (
+        "PARTIAL_WITH_OPEN_UNRESOLVED" if unresolved e
+lse "RECONCILED_CLOSED"
+    )
+    return {
+        "equation": "A + B = C (OPEN_CONTAINER_PRESERV
+ED)",
+        "a_digest": sha256_of(input_a),
+        "b_digest": sha256_of(input_b_items),
+        "b_total_count": len(input_b_items),
+        "c_state": {
+            "closure_status": status,
+            "resolved_facts": resolved_facts,
+            "unresolved_open_container": unresolved,
+            "unresolved_count": len(unresolved),
+        },
+        "c_digest": sha256_of(
+            {"resolved": resolved_facts, "unresolved":
+ unresolved}
+        ),
+    }
+
+
+def verify_unresolved_preservation(
+    input_a: Dict[str, Any],
+    input_b_items: List[Dict[str, Any]],
+    unresolved: List[Dict[str, Any]],
+) -> List[str]:
+    errors: List[str] = []
+    a_claims = list(input_a.get("claims") or [])
+    for r in unresolved:
+        src = r.get("source")
+        idx = r.get("source_index")
+        container = a_claims if src == "A" else input_
+b_items if src == "B" else None
+        if container is None:
+            errors.append(f"unknown source {src!r} in
+{r.get('reason')}")
+            continue
+        if not isinstance(idx, int) or not (0 <= idx <
+ len(container)):
+            errors.append(f"bad source_index {idx!r} f
+or {r.get('reason')}")
+            continue
+        if container[idx] != r.get("raw_preserved"):
+            errors.append(f"raw_preserved != source[{s
+rc}][{idx}] for {r.get('reason')}")
+        if sha256_of(r.get("raw_preserved")) != r.get(
+"digest"):
+            errors.append(f"digest != sha256(raw_prese
+rved) for {r.get('reason')}")
+    return errors
+
+
+def record_collaboration_event(
+    *,
+    artifact_id: str,
+    source_hash: str,
+    participant_alias: str,
+    task: str,
+    returned_summary: str,
+    unresolved_items: List[str],
+    human_disposition: str,
+    state_before: Optional[str],
+    state_after: str,
+    lifecycle_state: str,
+    seq: int,
+    prev_event: Optional[Dict[str, Any]] = None,
+    now_utc: Optional[int] = None,
+) -> Dict[str, Any]:
+    if human_disposition not in ALLOWED_DISPOSITIONS:
+        raise ValueError(f"illegal human_disposition:
+{human_disposition!r}")
+
+    if prev_event is None:
+        if seq != 0:
+            raise ValueError("first event must have se
+q=0")
+        if state_before is not None:
+            raise ValueError("first event must have st
+ate_before=None")
+        prev_hash = None
+    else:
+        if prev_event.get("seq") != seq - 1:
+            raise ValueError(f"seq {seq} does not foll
+ow prev seq {prev_event.get('seq')}")
+        if prev_event.get("artifact_id") != artifact_i
+d:
+            raise ValueError("prev_event belongs to a
+different artifact")
+> python3 GENESIS/test_copy/test_abc_audit_v4.py
+> ^C
+~ $ cat << 'EOF' > GENESIS/test_copy/test_abc_audit_v4
+.py ...
+> python3 GENESIS/test_copy/test_abc_audit_v4.py
+> python3 GENESIS/test_copy/test_abc_audit_v4.py.l^C
+~ $ python3 GENESIS/test_copy/test_abc_audit_v4.py.
+/data/data/com.termux/files/usr/bin/python3: can't ope
+n file '/data/data/com.termux/files/home/GENESIS/test_
+copy/test_abc_audit_v4.py.': [Errno 2] No such file or
+ directory
+~ $
+~ $
+~ $
+~ $
+~ $
+~ $ mkdir -p GENESIS/test_copy && cat << 'EOF' > GENES
+IS/test_copy/test_abc_audit_v4.py
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+from pathlib import Path
+import time
+from typing import Any, Dict, List, Optional, Tuple
+
+SCHEMA_VERSION = 4
+REPRO_TS = 1795478400
+
+ALLOWED_DISPOSITIONS = {
+    "PENDING_HUMAN_RUN",
+    "ACCEPTED_FOR_TEST_COPY",
+    "REJECTED",
+    "ESCALATED",
+}
+
+ALLOWED_LIFECYCLE_TRANSITIONS = {
+    ("STAGED", "COMMITTED_PENDING_FINALIZE"),
+    ("STAGED", "QUARANTINED"),
+    ("COMMITTED_PENDING_FINALIZE", "FINALIZED"),
+    ("COMMITTED_PENDING_FINALIZE", "RECOVERY_REQUIRED"
+),
+    ("FINALIZED", "QUARANTINED"),
+    ("QUARANTINED", "RECOVERY_REQUIRED"),
+}
+
+
+def canonical_bytes(obj: Any) -> bytes:
+    return json.dumps(
+        obj, sort_keys=True, separators=(",", ":"), en
+sure_ascii=True
+    ).encode("utf-8")
+
+
+def sha256_of(obj: Any) -> str:
+    return hashlib.sha256(canonical_bytes(obj)).hexdig
+est()
+
+
+def reconcile_abc(
+    input_a: Dict[str, Any],
+    input_b_items: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    base_facts = {k: v for k, v in input_a.items() if
+k != "claims"}
+    a_claims: List[Any] = list(input_a.get("claims") o
+r [])
+    resolved_facts: Dict[str, Any] = dict(base_facts)
+    unresolved: List[Dict[str, Any]] = []
+
+    a_seen: Dict[str, Tuple[int, Any]] = {}
+    for i, claim in enumerate(a_claims):
+        d = sha256_of(claim)
+        if not isinstance(claim, dict) or "key" not in
+ claim or "value" not in claim:
+            unresolved.append({
+                "source": "A",
+                "source_index": i,
+                "reason": "CORRUPTED_OR_MISSING_FIELDS
+",
+                "digest": d,
+                "raw_preserved": claim,
+            })
+            continue
+
+        k, v = claim["key"], claim["value"]
+        conflict = None
+        if k in a_seen and a_seen[k][1] != v:
+            conflict = ("CONTRADICTS_PRIOR_A_CLAIM", a
+_seen[k][0], a_seen[k][1])
+        elif k in base_facts and base_facts[k] != v:
+            conflict = ("CONTRADICTS_A_BASE_FACT", Non
+e, base_facts[k])
+
+        if conflict:
+            kind, prior_idx, prior_val = conflict
+            unresolved.append({
+                "source": "A",
+                "source_index": i,
+                "reason": "INTERNAL_CONTRADICTION_IN_A
+",
+                "key": k,
+                "conflict_kind": kind,
+                "prior_index": prior_idx,
+                "prior_value": prior_val,
+                "conflicting_value_in_a": v,
+                "digest": d,
+                "raw_preserved": claim,
+            })
+        else:
+            a_seen[k] = (i, v)
+            resolved_facts.setdefault(k, v)
+
+    seen_digests = set()
+    for idx, item in enumerate(input_b_items):
+        item_digest = sha256_of(item)
+        if item_digest in seen_digests:
+            unresolved.append({
+                "source": "B",
+                "source_index": idx,
+                "reason": "DUPLICATE_INPUT",
+                "digest": item_digest,
+                "raw_preserved": item,
+            })
+            continue
+        seen_digests.add(item_digest)
+
+        if (
+            not isinstance(item, dict)
+            or item.get("corrupted") is True
+            or "key" not in item
+            or "value" not in item
+        ):
+            unresolved.append({
+                "source": "B",
+                "source_index": idx,
+                "reason": "CORRUPTED_OR_MISSING_FIELDS
+",
+                "digest": item_digest,
+                "raw_preserved": item,
+            })
+            continue
+
+        k, v = item["key"], item["value"]
+        if k in resolved_facts and resolved_facts[k] !
+= v:
+            unresolved.append({
+                "source": "B",
+                "source_index": idx,
+                "reason": "CONTRADICTION_WITH_A",
+                "key": k,
+                "value_in_a": resolved_facts[k],
+                "conflicting_value_in_b": v,
+                "digest": item_digest,
+                "raw_preserved": item,
+            })
+        else:
+            resolved_facts[k] = v
+
+    status = (
+        "PARTIAL_WITH_OPEN_UNRESOLVED" if unresolved e
+lse "RECONCILED_CLOSED"
+    )
+    return {
+        "equation": "A + B = C (OPEN_CONTAINER_PRESERV
+ED)",
+        "a_digest": sha256_of(input_a),
+        "b_digest": sha256_of(input_b_items),
+        "b_total_count": len(input_b_items),
+        "c_state": {
+            "closure_status": status,
+            "resolved_facts": resolved_facts,
+            "unresolved_open_container": unresolved,
+            "unresolved_count": len(unresolved),
+        },
+        "c_digest": sha256_of(
+            {"resolved": resolved_facts, "unresolved":
+ unresolved}
+        ),
+    }
+
+
+def verify_unresolved_preservation(
+    input_a: Dict[str, Any],
+    input_b
+>
+>
+>
+>
+>
+>
+>
+> ^C
+~ $ ^C
+~ $
+~ $
+~ $ rm -f GENESIS/test_copy/test_abc_audit_v4.py
+~ $
+~ $ mkdir -p GENESIS/test_copy && python3 -c '
+import base64
+
+b64 = (
+    "IyEvdXNyL2Jpbi9lbnYgcHl0aG9uMwoKZnJvbSBfX2Z1dHVyZ
+V9fIGltcG9ydCBhbm5vdGF0"
+    "aW9ucwoKaW1wb3J0IGNvcHkKaW1wb3J0IGhhc2hsaWIKaW1wb
+3J0IGpzb24KZnJvbSBwYXRo"
+    "bGliIGltcG9ydCBQYXRoCmltcG9ydCB0aW1lCmZyb20gdHlwa
+W5nIGltcG9ydCBBbnksIERp"
+    "Y3QsIExpc3QsIE9wdGlvbmFsLCBUdXBsZQoKU0NIRU1BX1ZFU
+lNJT04gPSA0ClJFUFLQ19U"
+    "UyA9IDE3OTU0Nzg0MDAKClJFUFLQ19UUyA9IDE3OTU0Nzg0MD
+AK"
+)
+>
+> mkdir -p GENESIS/test_copy && ls -ld GENESIS/test_co
+py && python3 --version
+>
+>
+>
+>
+>
+>
+> ^C
+~ $
+~ $
+~ $ mkdir -p GENESIS/test_copy && ls -ld GENESIS/test_
+copy && python3 --version
+drwx------. 2 u0_a314 u0_a314 3452 Nov 24 17:07 GENESI
+S/test_copy
+Python 3.13.13
+~ $
+~ $ python3 - << 'PY'
+import copy, hashlib, json, time
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+SCHEMA_VERSION = 4
+REPRO_TS = 1795478400
+ALLOWED_DISPOSITIONS = {"PENDING_HUMAN_RUN", "ACCEPTED
+_FOR_TEST_COPY", "REJECTED", "ESCALATED"}
+ALLOWED_LIFECYCLE_TRANSITIONS = {
+    ("STAGED", "COMMITTED_PENDING_FINALIZE"),
+    ("STAGED", "QUARANTINED"),
+    ("COMMITTED_PENDING_FINALIZE", "FINALIZED"),
+    ("COMMITTED_PENDING_FINALIZE", "RECOVERY_REQUIRED"
+),
+    ("FINALIZED", "QUARANTINED"),
+    ("QUARANTINED", "RECOVERY_REQUIRED"),
+}
+
+def canonical_bytes(obj: Any) -> bytes:
+    return json.dumps(obj, sort_keys=True, separators=
+(",", ":"), ensure_ascii=True).encode("utf-8")
+
+def sha256_of(obj: Any) -> str:
+    return hashlib.sha256(canonical_bytes(obj)).hexdig
+est()
+
+def reconcile_abc(input_a: Dict[str, Any], input_b_ite
+ms: List[Dict[str, Any]]) -> Dict[str, Any]:
+    base_facts = {k: v for k, v in input_a.items() if
+k != "claims"}
+    a_claims: List[Any] = list(input_a.get("claims") o
+r [])
+    resolved_facts: Dict[str, Any] = dict(base_facts)
+    unresolved: List[Dict[str, Any]] = []
+    a_seen: Dict[str, Tuple[int, Any]] = {}
+
+    for i, claim in enumerate(a_claims):
+        d = sha256_of(claim)
+        if not isinstance(claim, dict) or "key" not in
+ claim or "value" not in claim:
+            unresolved.append({"source": "A", "source_
+index": i, "reason": "CORRUPTED_OR_MISSING_FIELDS", "d
+igest": d, "raw_preserved": claim})
+            continue
+        k, v = claim["key"], claim["value"]
+        conflict = None
+        if k in a_seen and a_seen[k][1] != v:
+            conflict = ("CONTRADICTS_PRIOR_A_CLAIM", a
+_seen[k][0], a_seen[k][1])
+        elif k in base_facts and base_facts[k] != v:
+            conflict = ("CONTRADICTS_A_BASE_FACT", Non
+e, base_facts[k])
+        if conflict:
+            kind, prior_idx, prior_val = conflict
+            unresolved.append({
+                "source": "A", "source_index": i, "rea
+son": "INTERNAL_CONTRADICTION_IN_A",
+                "key": k, "conflict_kind": kind, "prio
+r_index": prior_idx,
+                "prior_value": prior_val, "conflicting
+_value_in_a": v,
+                "digest": d, "raw_preserved": claim,
+            })
+        else:
+            a_seen[k] = (i, v)
+            resolved_facts.setdefault(k, v)
+
+    seen_digests = set()
+    for idx, item in enumerate(input_b_items):
+        item_digest = sha256_of(item)
+        if item_digest in seen_digests:
+            unresolved.append({"source": "B", "source_
+index": idx, "reason": "DUPLICATE_INPUT", "digest": it
+em_digest, "raw_preserved": item})
+            continue
+        seen_digests.add(item_digest)
+        if not isinstance(item, dict) or item.get("cor
+rupted") is True or "key" not in item or "value" not i
+n item:
+            unresolved.append({"source": "B", "source_
+index": idx, "reason": "CORRUPTED_OR_MISSING_FIELDS",
+"digest": item_digest, "raw_preserved": item})
+            continue
+        k, v = item["key"], item["value"]
+        if k in resolved_facts and resolved_facts[k] !
+= v:
+            unresolved.append({
+                "source": "B", "source_index": idx, "r
+eason": "CONTRADICTION_WITH_A",
+                "key": k, "value_in_a": resolved_facts
+[k], "conflicting_value_in_b": v,
+                "digest": item_digest, "raw_preserved"
+: item,
+            })
+        else:
+            resolved_facts[k] = v
+
+    status = "PARTIAL_WITH_OPEN_UNRESOLVED" if unresol
+ved else "RECONCILED_CLOSED"
+
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+> ^C
+~ $
+~ $
+~ $
+~ $
+~ $ python3 -c 'import pathlib; pathlib.Path("GENESIS/
+test_copy/test_abc_audit_v4.py").write_text("import ha
+shlib, json\nREPRO_TS = 1795478400\nproof = {\"schema_
+version\": 4, \"repro_ts\": REPRO_TS, \"closure_status
+\": \"PARTIAL_WITH_OPEN_UNRESOLVED\", \"unresolved_cou
+nt\": 5}\nprint(\"CLOSURE:\", proof[\"closure_status\"
+], \"UNRESOLVED:\", proof[\"unresolved_count\"])\nprin
+t(\"PROOF_SHA256:\", hashlib.sha256(json.dumps(proof,
+sort_keys=True, separators=(\",\", \":\")).encode()).h
+exdigest())\n")' && python3 GENESIS/test_copy/test_abc
+_audit_v4.py
+CLOSURE: PARTIAL_WITH_OPEN_UNRESOLVED UNRESOLVED: 5
+PROOF_SHA256: bfa58777547f24ef9627a1aeef6179ed28363fcc
+fd7c0a090b7565c8cc5b39c6
+~ $
+~ $ python3 -c 'import pathlib; pathlib.Path("GENESIS/
+test_copy/test_abc_audit_v4.py").write_text("from __fu
+ture__ import annotations\nimport copy, hashlib, json,
+ time\nfrom pathlib import Path\nfrom typing import An
+y, Dict, List, Optional, Tuple\n\nSCHEMA_VERSION = 4\n
+REPRO_TS = 1795478400\nALLOWED_DISPOSITIONS = {\"PENDI
+NG_HUMAN_RUN\", \"ACCEPTED_FOR_TEST_COPY\", \"REJECTED
+\", \"ESCALATED\"}\nALLOWED_LIFECYCLE_TRANSITIONS = {(
+\"STAGED\", \"COMMITTED_PENDING_FINALIZE\"), (\"STAGED
+\", \"QUARANTINED\"), (\"COMMITTED_PENDING_FINALIZE\",
+ \"FINALIZED\"), (\"COMMITTED_PENDING_FINALIZE\", \"RE
+COVERY_REQUIRED\"), (\"FINALIZED\", \"QUARANTINED\"),
+(\"QUARANTINED\", \"RECOVERY_REQUIRED\")}\n\ndef canon
+ical_bytes(obj: Any) -> bytes:\n    return json.dumps(
+obj, sort_keys=True, separators=(\",\", \":\"), ensure
+_ascii=True).encode(\"utf-8\")\n\ndef sha256_of(obj: A
+ny) -> str:\n    return hashlib.sha256(canonical_bytes
+(obj)).hexdigest()\n\nprint(\"PIECE_1_OK\")\n")' && py
+thon3 GENESIS/test_copy/test_abc_audit_v4.py
+PIECE_1_OK
+~ $
+~ $ python3 -c 'import pathlib; p=pathlib.Path("GENESI
+S/test_copy/test_abc_audit_v4.py"); t=p.read_text().re
+place("print(\"PIECE_1_OK\")\n", ""); p.write_text(t +
+ "def reconcile_abc(input_a: Dict[str, Any], input_b_i
+tems: List[Dict[str, Any]]) -> Dict[str, Any]:\n    ba
+se_facts = {k: v for k, v in input_a.items() if k != \
+"claims\"}\n    a_claims: List[Any] = list(input_a.get
+(\"claims\") or [])\n    resolved_facts: Dict[str, Any
+] = dict(base_facts)\n    unresolved: List[Dict[str, A
+ny]] = []\n    a_seen: Dict[str, Tuple[int, Any]] = {}
+\n    for i, claim in enumerate(a_claims):\n        d
+= sha256_of(claim)\n        if not isinstance(claim, d
+ict) or \"key\" not in claim or \"value\" not in claim
+:\n            unresolved.append({\"source\": \"A\", \
+"source_index\": i, \"reason\": \"CORRUPTED_OR_MISSING
+_FIELDS\", \"digest\": d, \"raw_preserved\": claim})\n
+            continue\n        k, v = claim[\"key\"], c
+laim[\"value\"]\n        conflict = None\n        if k
+ in a_seen and a_seen[k][1] != v:\n            conflic
+t = (\"CONTRADICTS_PRIOR_A_CLAIM\", a_seen[k][0], a_se
+en[k][1])\n        elif k in base_facts and base_facts
+[k] != v:\n            conflict = (\"CONTRADICTS_A_BAS
+E_FACT\", None, base_facts[k])\n        if conflict:\n
+            kind, prior_idx, prior_val = conflict\n
+         unresolved.append({\"source\": \"A\", \"sourc
+e_index\": i, \"reason\": \"INTERNAL_CONTRADICTION_IN_
+A\", \"key\": k, \"conflict_kind\": kind, \"prior_inde
+x\": prior_idx, \"prior_value\": prior_val, \"conflict
+ing_value_in_a\": v, \"digest\": d, \"raw_preserved\":
+ claim})\n        else:\n            a_seen[k] = (i, v
+)\n            resolved_facts.setdefault(k, v)\n    se
+en_digests = set()\n    for idx, item in enumerate(inp
+ut_b_items):\n        item_digest = sha256_of(item)\n
+       if item_digest in seen_digests:\n            un
+resolved.append({\"source\": \"B\", \"source_index\":
+idx, \"reason\": \"DUPLICATE_INPUT\", \"digest\": item
+_digest, \"raw_preserved\": item})\n            contin
+ue\n        seen_digests.add(item_digest)\n        if
+not isinstance(item, dict) or item.get(\"corrupted\")
+is True or \"key\" not in item or \"value\" not in ite
+m:\n            unresolved.append({\"source\": \"B\",
+\"source_index\": idx, \"reason\": \"CORRUPTED_OR_MISS
+ING_FIELDS\", \"digest\": item_digest, \"raw_preserved
+\": item})\n            continue\n        k, v = item[
+\"key\"], item[\"value\"]\n        if k in resolved_fa
+cts and resolved_facts[k] != v:\n            unresolve
+d.append({\"source\": \"B\", \"source_index\": idx, \"
+reason\": \"CONTRADICTION_WITH_A\", \"key\": k, \"valu
+e_in_a\": resolved_facts[k], \"conflicting_value_in_b\
+": v, \"digest\": item_digest, \"raw_preserved\": item
+})\n        else:\n            resolved_facts[k] = v\n
+    status = \"PARTIAL_WITH_OPEN_UNRESOLVED\" if unres
+olved else \"RECONCILED_CLOSED\"\n    return {\"equati
+on\": \"A + B = C (OPEN_CONTAINER_PRESERVED)\", \"a_di
+gest\": sha256_of(input_a), \"b_digest\": sha256_of(in
+put_b_items), \"b_total_count\": len(input_b_items), \
+"c_state\": {\"closure_status\": status, \"resolved_fa
+cts\": resolved_facts, \"unresolved_open_container\":
+unresolved, \"unresolved_count\": len(unresolved)}, \"
+c_digest\": sha256_of({\"resolved\": resolved_facts, \
+"unresolved\": unresolved})}\n\ndef verify_unresolved_
+preservation(input_a: Dict[str, Any], input_b_items: L
+ist[Dict[str, Any]], unresolved: List[Dict[str, Any]])
+ -> List[str]:\n    errors: List[str] = []\n    a_clai
+ms = list(input_a.get(\"claims\") or [])\n    for r in
+ unresolved:\n        src, idx = r.get(\"source\"), r.
+get(\"source_index\")\n        container = a_claims if
+ src == \"A\" else input_b_items if src == \"B\" else
+None\n        if container is None:\n            error
+s.append(f\"unknown source {src!r}\")\n            con
+tinue\n        if not isinstance(idx, int) or not (0 <
+= idx < len(container)):\n            errors.append(f\
+"bad source_index {idx!r}\")\n            continue\n
+      if container[idx] != r.get(\"raw_preserved\"):\n
+            errors.append(f\"raw_preserved mismatch at
+ {src}[{idx}]\")\n        if sha256_of(r.get(\"raw_pre
+served\")) != r.get(\"digest\"):\n            errors.a
+ppend(f\"digest mismatch at {src}[{idx}]\")\n    retur
+n errors\n\nprint(\"PIECE_2_OK\")\n")' && python3 GENE
+SIS/test_copy/test_abc_audit_v4.py
+PIECE_2_OK
+~ $
+~ $ python3 -c 'import pathlib; p=pathlib.Path("GENESI
+S/test_copy/test_abc_audit_v4.py"); t=p.read_text().re
+place("print(\"PIECE_2_OK\")\n", ""); p.write_text(t +
+ "def record_collaboration_event(*, artifact_id: str,
+source_hash: str, participant_alias: str, task: str, r
+eturned_summary: str, unresolved_items: List[str], hum
+an_disposition: str, state_before: Optional[str], stat
+e_after: str, lifecycle_state: str, seq: int, prev_eve
+nt: Optional[Dict[str, Any]] = None, now_utc: Optional
+[int] = None) -> Dict[str, Any]:\n    if human_disposi
+tion not in ALLOWED_DISPOSITIONS:\n        raise Value
+Error(f\"illegal human_disposition: {human_disposition
+!r}\")\n    if prev_event is None:\n        if seq !=
+0: raise ValueError(\"first event must have seq=0\")\n
+        if state_before is not None: raise ValueError(
+\"first event must have state_before=None\")\n
+prev_hash = None\n    else:\n        if prev_event.get
+(\"seq\") != seq - 1: raise ValueError(\"bad seq\")\n
+       if prev_event.get(\"artifact_id\") != artifact_
+id: raise ValueError(\"bad artifact_id\")\n        if
+state_before != prev_event.get(\"state_after\"): raise
+ ValueError(\"bad state_before\")\n        tr = (prev_
+event.get(\"lifecycle_state\"), lifecycle_state)\n
+    if tr not in ALLOWED_LIFECYCLE_TRANSITIONS: raise
+ValueError(f\"bad transition {tr}\")\n        prev_has
+h = prev_event.get(\"event_sha256\")\n    ev = {\"sche
+ma_version\": SCHEMA_VERSION, \"seq\": seq, \"prev_eve
+nt_sha256\": prev_hash, \"timestamp_utc\": int(now_utc
+ if now_utc is not None else time.time()), \"artifact_
+id\": artifact_id, \"source_hash\": source_hash, \"par
+ticipant\": participant_alias, \"task\": task, \"retur
+ned_summary\": returned_summary, \"unresolved_items\":
+ list(unresolved_items), \"human_disposition\": human_
+disposition, \"state_before\": state_before, \"state_a
+fter\": state_after, \"lifecycle_state\": lifecycle_st
+ate}\n    ev[\"event_sha256\"] = sha256_of(ev)\n    re
+turn ev\n\ndef verify_chain(events: List[Dict[str, Any
+]]) -> Tuple[bool, List[str]]:\n    errs: List[str] =
+[]\n    for i, ev in enumerate(events):\n        body
+= {k: v for k, v in ev.items() if k != \"event_sha256\
+"}\n        if ev.get(\"event_sha256\") != sha256_of(b
+ody): errs.append(f\"[{i}] hash mismatch\")\n        i
+f ev.get(\"seq\") != i: errs.append(f\"[{i}] seq misma
+tch\")\n        if ev.get(\"human_disposition\") not i
+n ALLOWED_DISPOSITIONS: errs.append(f\"[{i}] bad disp\
+")\n        if i == 0:\n            if ev.get(\"prev_e
+vent_sha256\") is not None or ev.get(\"state_before\")
+ is not None: errs.append(f\"[{i}] bad genesis links\"
+)\n        else:\n            p = events[i - 1]\n
+       if ev.get(\"prev_event_sha256\") != p.get(\"eve
+nt_sha256\"): errs.append(f\"[{i}] broken prev_hash\")
+\n            if ev.get(\"state_before\") != p.get(\"s
+tate_after\"): errs.append(f\"[{i}] broken state link\
+")\n            if ev.get(\"artifact_id\") != p.get(\"
+artifact_id\"): errs.append(f\"[{i}] artifact mismatch
+\")\n            if (p.get(\"lifecycle_state\"), ev.ge
+t(\"lifecycle_state\")) not in ALLOWED_LIFECYCLE_TRANS
+ITIONS: errs.append(f\"[{i}] bad transition\")\n    re
+turn (len(errs) == 0), errs\n\ndef main() -> int:\n
+ a = {\"parcel_id\": \"DL-001\", \"declared_status\":
+\"DELIVERED\", \"weight_kg\": 12.5, \"claims\": [{\"ke
+y\": \"declared_status\", \"value\": \"DELIVERED\"}, {
+\"key\": \"declared_status\", \"value\": \"IN_TRANSIT\
+"}]}\n    b = [{\"key\": \"receiver_confirmed\", \"val
+ue\": True}, {\"key\": \"declared_status\", \"value\":
+ \"RETURNED_TO_SENDER\"}, {\"key\": \"receiver_confirm
+ed\", \"value\": True}, {\"key\": \"missing_value_fiel
+d\"}, {\"key\": \"weight_kg\", \"value\": 99.9, \"corr
+upted\": True}]\n    res = reconcile_abc(a, b)\n    un
+res = res[\"c_state\"][\"unresolved_open_container\"]\
+n    perrs = verify_unresolved_preservation(a, b, unre
+s)\n    cdig = res[\"c_digest\"]\n    art = \"GENESIS_
+SUBSTRATE_ADC02\"\n    sh = \"adcdae38ee4590e4a0d3d968
+e87e09d2bf205a434808caead3e6b66a576ece02\"\n    e0 = r
+ecord_collaboration_event(artifact_id=art, source_hash
+=sh, participant_alias=\"ChatGPT_Reviewer\", task=\"v4
+ A+B=C audit\", returned_summary=\"Open container + ch
+ain\", unresolved_items=[\"T01-T11 pending\"], human_d
+isposition=\"ACCEPTED_FOR_TEST_COPY\", state_before=No
+ne, state_after=cdig, lifecycle_state=\"STAGED\", seq=
+0, now_utc=REPRO_TS)\n    e1 = record_collaboration_ev
+ent(artifact_id=art, source_hash=sh, participant_alias
+=\"Gemini_Reviewer\", task=\"v4 verify\", returned_sum
+mary=\"Chain verified\", unresolved_items=[\"T09/T11 p
+ending\"], human_disposition=\"PENDING_HUMAN_RUN\", st
+ate_before=cdig, state_after=cdig, lifecycle_state=\"C
+OMMITTED_PENDING_FINALIZE\", seq=1, prev_event=e0, now
+_utc=REPRO_TS)\n    e2 = record_collaboration_event(ar
+tifact_id=art, source_hash=sh, participant_alias=\"Hum
+an_Operator\", task=\"v4 finalize\", returned_summary=
+\"Ready for isolated test\", unresolved_items=[\"head
+anchor pending\"], human_disposition=\"ACCEPTED_FOR_TE
+ST_COPY\", state_before=cdig, state_after=cdig, lifecy
+cle_state=\"FINALIZED\", seq=2, prev_event=e1, now_utc
+=REPRO_TS)\n    chain = [e0, e1, e2]\n    ok, errs = v
+erify_chain(chain)\n    neg = []\n    m1 = copy.deepco
+py(chain); m1[1][\"returned_summary\"] = \"TAMPERED\";
+ neg.append(not verify_chain(m1)[0])\n    m2 = copy.de
+epcopy(chain); m2[1][\"returned_summary\"] = \"TAMPERE
+D_REHASHED\"; m2[1][\"event_sha256\"] = sha256_of({k:
+v for k, v in m2[1].items() if k != \"event_sha256\"})
+; neg.append(not verify_chain(m2)[0])\n    m3 = copy.d
+eepcopy(chain); del m3[1]; neg.append(not verify_chain
+(m3)[0])\n    m4 = copy.deepcopy(chain); m4[1], m4[2]
+= m4[2], m4[1]; neg.append(not verify_chain(m4)[0])\n
+   neg.append(True)\n    try:\n        record_collabor
+ation_event(artifact_id=art, source_hash=sh, participa
+nt_alias=\"Rogue\", task=\"skip\", returned_summary=\"
+skip\", unresolved_items=[], human_disposition=\"ACCEP
+TED_FOR_TEST_COPY\", state_before=cdig, state_after=cd
+ig, lifecycle_state=\"FINALIZED\", seq=1, prev_event=e
+0, now_utc=REPRO_TS)\n        neg.append(False)\n    e
+xcept ValueError: neg.append(True)\n    try:\n
+record_collaboration_event(artifact_id=art, source_has
+h=sh, participant_alias=\"Rogue\", task=\"disp\", retu
+rned_summary=\"disp\", unresolved_items=[], human_disp
+osition
+>
+>
+>
+>
+>
+>
+> ^C
+~ $
+~ $ python3 -c 'import pathlib; p=pathlib.Path("GENESI
+S/test_copy/test_abc_audit_v4.py"); t=p.read_text().re
+place("print(\"PIECE_2_OK\")\n", ""); p.write_text(t +
+ "def record_collaboration_event(*, artifact_id: str,
+source_hash: str, participant_alias: str, task: str, r
+eturned_summary: str, unresolved_items: List[str], hum
+an_disposition: str, state_before: Optional[str], stat
+e_after: str, lifecycle_state: str, seq: int, prev_eve
+nt: Optional[Dict[str, Any]] = None, now_utc: Optional
+[int] = None) -> Dict[str, Any]:\n    if human_disposi
+tion not in ALLOWED_DISPOSITIONS:\n        raise Value
+Error(f\"illegal human_disposition: {human_disposition
+!r}\")\n    if prev_event is None:\n        if seq !=
+0: raise ValueError(\"first event must have seq=0\")\n
+        if state_before is not None: raise ValueError(
+\"first event must have state_before=None\")\n
+prev_hash = None\n    else:\n        if prev_event.get
+(\"seq\") != seq - 1: raise ValueError(\"bad seq\")\n
+       if prev_event.get(\"artifact_id\") != artifact_
+id: raise ValueError(\"bad artifact_id\")\n        if
+state_before != prev_event.get(\"state_after\"): raise
+ ValueError(\"bad state_before\")\n        tr = (prev_
+event.get(\"lifecycle_state\"), lifecycle_state)\n
+    if tr not in ALLOWED_LIFECYCLE_TRANSITIONS: raise
+ValueError(f\"bad transition {tr}\")\n        prev_has
+h = prev_event.get(\"event_sha256\")\n    ev = {\"sche
+ma_version\": SCHEMA_VERSION, \"seq\": seq, \"prev_eve
+nt_sha256\": prev_hash, \"timestamp_utc\": int(now_utc
+ if now_utc is not None else time.time()), \"artifact_
+id\": artifact_id, \"source_hash\": source_hash, \"par
+ticipant\": participant_alias, \"task\": task, \"retur
+ned_summary\": returned_summary, \"unresolved_items\":
+ list(unresolved_items), \"human_disposition\": human_
+disposition, \"state_before\": state_before, \"state_a
+fter\": state_after, \"lifecycle_state\": lifecycle_st
+ate}\n    ev[\"event_sha256\"] = sha256_of(ev)\n    re
+turn ev\n\ndef verify_chain(events: List[Dict[str, Any
+]]) -> Tuple[bool, List[str]]:\n    errs: List[str] =
+[]\n    for i, ev in enumerate(events):\n        body
+= {k: v for k, v in ev.items() if k != \"event_sha256\
+"}\n        if ev.get(\"event_sha256\") != sha256_of(b
+ody): errs.append(f\"[{i}] hash mismatch\")\n        i
+f ev.get(\"seq\") != i: errs.append(f\"[{i}] seq misma
+tch\")\n        if ev.get(\"human_disposition\") not i
+n ALLOWED_DISPOSITIONS: errs.append(f\"[{i}] bad disp\
+")\n        if i == 0:\n            if ev.get(\"prev_e
+vent_sha256\") is not None or ev.get(\"state_before\")
+ is not None: errs.append(f\"[{i}] bad genesis links\"
+)\n        else:\n            p = events[i - 1]\n
+       if ev.get(\"prev_event_sha256\") != p.get(\"eve
+nt_sha256\"): errs.append(f\"[{i}] broken prev_hash\")
+\n            if ev.get(\"state_before\") != p.get(\"s
+tate_after\"): errs.append(f\"[{i}] broken state link\
+")\n            if ev.get(\"artifact_id\") != p.get(\"
+artifact_id\"): errs.append(f\"[{i}] artifact mismatch
+\")\n            if (p.get(\"lifecycle_state\"), ev.ge
+t(\"lifecycle_state\")) not in ALLOWED_LIFECYCLE_TRANS
+ITIONS: errs.append(f\"[{i}] bad transition\")\n    re
+turn (len(errs) == 0), errs\n\ndef main() -> int:\n
+ a = {\"parcel_id\": \"DL-001\", \"declared_status\":
+\"DELIVERED\", \"weight_kg\": 12.5, \"claims\": [{\"ke
+y\": \"declared_status\", \"value\": \"DELIVERED\"}, {
+\"key\": \"declared_status\", \"value\": \"IN_TRANSIT\
+"}]}\n    b = [{\"key\": \"receiver_confirmed\", \"val
+ue\": True}, {\"key\": \"declared_status\", \"value\":
+ \"RETURNED_TO_SENDER\"}, {\"key\": \"receiver_confirm
+ed\", \"value\": True}, {\"key\": \"missing_value_fiel
+d\"}, {\"key\": \"weight_kg\", \"value\": 99.9, \"corr
+upted\": True}]\n    res = reconcile_abc(a, b)\n    un
+res = res[\"c_state\"][\"unresolved_open_container\"]\
+n    perrs = verify_unresolved_preservation(a, b, unre
+s)\n    cdig = res[\"c_digest\"]\n    art = \"GENESIS_
+SUBSTRATE_ADC02\"\n    sh = \"adcdae38ee4590e4a0d3d968
+e87e09d2bf205a434808caead3e6b66a576ece02\"\n    e0 = r
+ecord_collaboration_event(artifact_id=art, source_hash
+=sh, participant_alias=\"ChatGPT_Reviewer\", task=\"v4
+ A+B=C audit\", returned_summary=\"Open container + ch
+ain\", unresolved_items=[\"T01-T11 pending\"], human_d
+isposition=\"ACCEPTED_FOR_TEST_COPY\", state_before=No
+ne, state_after=cdig, lifecycle_state=\"STAGED\", seq=
+0, now_utc=REPRO_TS)\n    e1 = record_collaboration_ev
+ent(artifact_id=art, source_hash=sh, participant_alias
+=\"Gemini_Reviewer\", task=\"v4 verify\", returned_sum
+mary=\"Chain verified\", unresolved_items=[\"T09/T11 p
+ending\"], human_disposition=\"PENDING_HUMAN_RUN\", st
+ate_before=cdig, state_after=cdig, lifecycle_state=\"C
+OMMITTED_PENDING_FINALIZE\", seq=1, prev_event=e0, now
+_utc=REPRO_TS)\n    e2 = record_collaboration_event(ar
+tifact_id=art, source_hash=sh, participant_alias=\"Hum
+an_Operator\", task=\"v4 finalize\", returned_summary=
+\"Ready for isolated test\", unresolved_items=[\"head
+anchor pending\"], human_disposition=\"ACCEPTED_FOR_TE
+ST_COPY\", state_before=cdig, state_after=cdig, lifecy
+cle_state=\"FINALIZED\", seq=2, prev_event=e1, now_utc
+=REPRO_TS)\n    chain = [e0, e1, e2]\n    ok, errs = v
+erify_chain(chain)\n    neg = []\n    m1 = copy.deepco
+py(chain); m1[1][\"returned_summary\"] = \"TAMPERED\";
+ neg.append(not verify_chain(m1)[0])\n    m2 = copy.de
+epcopy(chain); m2[1][\"returned_summary\"] = \"TAMPERE
+D_REHASHED\"; m2[1][\"event_sha256\"] = sha256_of({k:
+v for k, v in m2[1].items() if k != \"event_sha256\"})
+; neg.append(not verify_chain(m2)[0])\n    m3 = copy.d
+eepcopy(chain); del m3[1]; neg.append(not verify_chain
+(m3)[0])\n    m4 = copy.deepcopy(chain); m4[1], m4[2]
+= m4[2], m4[1]; neg.append(not verify_chain(m4)[0])\n
+   neg.append(True)\n    try:\n        record_collabor
+ation_event(artifact_id=art, source_hash=sh, participa
+nt_alias=\"Rogue\", task=\"skip\", returned_summary=\"
+skip\", unresolved_items=[], human_disposition=\"ACCEP
+TED_FOR_TEST_COPY\", state_before=cdig, state_after=cd
+ig, lifecycle_state=\"FINALIZED\", seq=1, prev_event=e
+0, now_utc=REPRO_TS)\n        neg.append(False)\n    e
+xcept ValueError: neg.append(True)\n    try:\n
+record_collaboration_event(artifact_id=art, source_has
+h=sh, participant_alias=\"Rogue\", task=\"disp\", retu
+rned_summary=\"disp\", unresolved_items=[], human_disp
+osition
+>
+>
+>
+>
+> python3 -c 'import pathlib; p=pathlib.Path("GENESIS/
+test_copy/test_abc_audit_v4.py"); p.write_text(p.read_
+text() + "=\"BOGUS\", state_before=None, state_after=c
+dig, lifecycle_state=\"STAGED\", seq=0, now_utc=REPRO_
+TS)\n        neg.append(False)\n    except ValueError:
+ neg.append(True)\n    proof = {\"schema_version\": SC
+HEMA_VERSION, \"repro_ts\": REPRO_TS, \"abc_result\":
+res, \"preservation_errors\": perrs, \"chain_valid\":
+ok, \"chain_errors\": errs, \"collaboration_chain\": c
+hain, \"negative_tests_all_expected\": all(neg)}\n
+Path(\"GENESIS/test_copy/abc_audit_v4_proof.json\").wr
+ite_text(json.dumps(proof, indent=2, sort_keys=True),
+encoding=\"utf-8\")\n    print(\"CLOSURE:\", res[\"c_s
+tate\"][\"closure_status\"], \"UNRESOLVED:\", res[\"c_
+state\"][\"unresolved_count\"])\n    print(\"PRESERVAT
+ION_OK:\", len(perrs) == 0, \"CHAIN_OK:\", ok, \"NEG_O
+K:\", all(neg))\n    print(\"PROOF_SHA256:\", sha256_o
+f(proof))\n    return 0 if (not perrs and ok and all(n
+eg)) else 1\n\nif __name__ == \"__main__\": raise Syst
+emExit(main())\n")' && python3 GENESIS/test_copy/test_
+abc_audit_v4.py
+> python3 -c 'import pathlib; p=pathlib.Path("GENESIS/
+test_copy/test_abc_audit_v4.py"); p.write_text(p.read_
+text() + "=\"BOGUS\", state_before=None, state_after=c
+dig, lifecycle_state=\"STAGED\", seq=0, now_utc=REPRO_
+TS)\n        neg.append(False)\n    except ValueError:
+ neg.append(True)\n    proof = {\"schema_version\": SC
+HEMA_VERSION, \"repro_ts\": REPRO_TS, \"abc_result\":
+res, \"preservation_errors\": perrs, \"chain_valid\":
+ok, \"chain_errors\": errs, \"collaboration_chain\": c
+hain, \"negative_tests_all_expected\": all(neg)}\n
+Path(\"GENESIS/test_copy/abc_audit_v4_proof.json\").wr
+ite_text(json.dumps(proof, indent=2, sort_keys=True),
+encoding=\"utf-8\")\n    print(\"CLOSURE:\", res[\"c_s
+tate\"][\"closure_status\"], \"UNRESOLVED:\", res[\"c_
+state\"][\"unresolved_count\"])\n    print(\"PRESERVAT
+ION_OK:\", len(perrs) == 0, \"CHAIN_OK:\", ok, \"NEG_O
+K:\", all(neg))\n    print(\"PROOF_SHA256:\", sha256_o
+f(proof))\n    return 0 if (not perrs and ok and all(n
+eg)) else 1\n\nif __name__ == \"__main__\": raise Syst
+emExit(main())\n")' && python3 GENESIS/test_copy/test_
+abc_audit_v4.py
+bash: syntax error near unexpected token `('
+~ $ python3 -c 'import pathlib; p=pathlib.Path("GENESI
+S/test_copy/test_abc_audit_v4.py"); print(p.exists(),
+p.stat().st_size if p.exists() else 0); print(p.read_t
+ext()[-250:])'
+True 4642
+w_preserved"):
+            errors.append(f"raw_preserved mismatch at
+{src}[{idx}]")
+        if sha256_of(r.get("raw_preserved")) != r.get(
+"digest"):
+            errors.append(f"digest mismatch at {src}[{
+idx}]")
+    return errors
+
+print("PIECE_2_OK")
+
+~ $
+~ $ python3 -c 'import pathlib; p=pathlib.Path("GENESI
+S/test_copy/test_abc_audit_v4.py"); t=p.read_text().re
+place("print(\"PIECE_2_OK\")\n", ""); p.write_text(t +
+ "def record_collaboration_event(*, artifact_id: str,
+source_hash: str, participant_alias: str, task: str, r
+eturned_summary: str, unresolved_items: List[str], hum
+an_disposition: str, state_before: Optional[str], stat
+e_after: str, lifecycle_state: str, seq: int, prev_eve
+nt: Optional[Dict[str, Any]] = None, now_utc: Optional
+[int] = None) -> Dict[str, Any]:\n    if human_disposi
+tion not in ALLOWED_DISPOSITIONS: raise ValueError(f\"
+bad disp {human_disposition!r}\")\n    if prev_event i
+s None:\n        if seq != 0 or state_before is not No
+ne: raise ValueError(\"bad first event\")\n        pre
+v_hash = None\n    else:\n        if prev_event.get(\"
+seq\") != seq - 1 or prev_event.get(\"artifact_id\") !
+= artifact_id or state_before != prev_event.get(\"stat
+e_after\"): raise ValueError(\"bad link\")\n        if
+ (prev_event.get(\"lifecycle_state\"), lifecycle_state
+) not in ALLOWED_LIFECYCLE_TRANSITIONS: raise ValueErr
+or(\"bad transition\")\n        prev_hash = prev_event
+.get(\"event_sha256\")\n    ev = {\"schema_version\":
+SCHEMA_VERSION, \"seq\": seq, \"prev_event_sha256\": p
+rev_hash, \"timestamp_utc\": int(now_utc if now_utc is
+ not None else time.time()), \"artifact_id\": artifact
+_id, \"source_hash\": source_hash, \"participant\": pa
+rticipant_alias, \"task\": task, \"returned_summary\":
+ returned_summary, \"unresolved_items\": list(unresolv
+ed_items), \"human_disposition\": human_disposition, \
+"state_before\": state_before, \"state_after\": state_
+after, \"lifecycle_state\": lifecycle_state}\n    ev[\
+"event_sha256\"] = sha256_of(ev)\n    return ev\n\ndef
+ verify_chain(events: List[Dict[str, Any]]) -> Tuple[b
+ool, List[str]]:\n    errs: List[str] = []\n    for i,
+ ev in enumerate(events):\n        body = {k: v for k,
+ v in ev.items() if k != \"event_sha256\"}\n        if
+ ev.get(\"event_sha256\") != sha256_of(body): errs.app
+end(f\"[{i}] hash\")\n        if ev.get(\"seq\") != i:
+ errs.append(f\"[{i}] seq\")\n        if ev.get(\"huma
+n_disposition\") not in ALLOWED_DISPOSITIONS: errs.app
+end(f\"[{i}] disp\")\n        if i == 0:\n
+if ev.get(\"prev_event_sha256\") is not None or ev.get
+(\"state_before\") is not None: errs.append(f\"[{i}] g
+en\")\n        else:\n            p = events[i - 1]\n
+           if ev.get(\"prev_event_sha256\") != p.get(\
+"event_sha256\") or ev.get(\"state_before\") != p.get(
+\"state_after\") or ev.get(\"artifact_id\") != p.get(\
+"artifact_id\"): errs.append(f\"[{i}] link\")\n
+     if (p.get(\"lifecycle_state\"), ev.get(\"lifecycl
+e_state\")) not in ALLOWED_LIFECYCLE_TRANSITIONS: errs
+.append(f\"[{i}] tr\")\n    return (len(errs) == 0), e
+rrs\n\nprint(\"PIECE_3A_OK\")\n")' && python3 GENESIS/
+test_copy/test_abc_audit_v4.py
+PIECE_3A_OK
+~ $
+~ $ python3 -c 'import pathlib; p=pathlib.Path("GENESI
+S/test_copy/test_abc_audit_v4.py"); t=p.read_text().re
+place("print(\"PIECE_3A_OK\")\n", ""); p.write_text(t
++ "def main() -> int:\n    a = {\"parcel_id\": \"DL-00
+1\", \"declared_status\": \"DELIVERED\", \"weight_kg\"
+: 12.5, \"claims\": [{\"key\": \"declared_status\", \"
+value\": \"DELIVERED\"}, {\"key\": \"declared_status\"
+, \"value\": \"IN_TRANSIT\"}]}\n    b = [{\"key\": \"r
+eceiver_confirmed\", \"value\": True}, {\"key\": \"dec
+lared_status\", \"value\": \"RETURNED_TO_SENDER\"}, {\
+"key\": \"receiver_confirmed\", \"value\": True}, {\"k
+ey\": \"missing_value_field\"}, {\"key\": \"weight_kg\
+", \"value\": 99.9, \"corrupted\": True}]\n    res = r
+econcile_abc(a, b)\n    unres = res[\"c_state\"][\"unr
+esolved_open_container\"]\n    perrs = verify_unresolv
+ed_preservation(a, b, unres)\n    cdig = res[\"c_diges
+t\"]\n    art, sh = \"GENESIS_SUBSTRATE_ADC02\", \"adc
+dae38ee4590e4a0d3d968e87e09d2bf205a434808caead3e6b66a5
+76ece02\"\n    e0 = record_collaboration_event(artifac
+t_id=art, source_hash=sh, participant_alias=\"ChatGPT_
+Reviewer\", task=\"v4 A+B=C audit\", returned_summary=
+\"Open container + chain\", unresolved_items=[\"T01-T1
+1 pending\"], human_disposition=\"ACCEPTED_FOR_TEST_CO
+PY\", state_before=None, state_after=cdig, lifecycle_s
+tate=\"STAGED\", seq=0, now_utc=REPRO_TS)\n    e1 = re
+cord_collaboration_event(artifact_id=art, source_hash=
+sh, participant_alias=\"Gemini_Reviewer\", task=\"v4 v
+erify\", returned_summary=\"Chain verified\", unresolv
+ed_items=[\"T09/T11 pending\"], human_disposition=\"PE
+NDING_HUMAN_RUN\", state_before=cdig, state_after=cdig
+, lifecycle_state=\"COMMITTED_PENDING_FINALIZE\", seq=
+1, prev_event=e0, now_utc=REPRO_TS)\n    e2 = record_c
+ollaboration_event(artifact_id=art, source_hash=sh, pa
+rticipant_alias=\"Human_Operator\", task=\"v4 finalize
+\", returned_summary=\"Ready for isolated test\", unre
+solved_items=[\"head anchor pending\"], human_disposit
+ion=\"ACCEPTED_FOR_TEST_COPY\", state_before=cdig, sta
+te_after=cdig, lifecycle_state=\"FINALIZED\", seq=2, p
+rev_event=e1, now_utc=REPRO_TS)\n    chain = [e0, e1,
+e2]\n    ok, errs = verify_chain(chain)\n    neg = []\
+n    m1 = copy.deepcopy(chain); m1[1][\"returned_summa
+ry\"] = \"TAMPERED\"; neg.append(not verify_chain(m1)[
+0])\n    m2 = copy.deepcopy(chain); m2[1][\"returned_s
+ummary\"] = \"TAMPERED_REHASHED\"; m2[1][\"event_sha25
+6\"] = sha256_of({k: v for k, v in m2[1].items() if k
+!= \"event_sha256\"}); neg.append(not verify_chain(m2)
+[0])\n    m3 = copy.deepcopy(chain); del m3[1]; neg.ap
+pend(not verify_chain(m3)[0])\n    m4 = copy.deepcopy(
+chain); m4[1], m4[2] = m4[2], m4[1]; neg.append(not ve
+rify_chain(m4)[0])\n    neg.append(True)\n    try:\n
+      record_collaboration_event(artifact_id=art, sour
+ce_hash=sh, participant_alias=\"Rogue\", task=\"skip\"
+, returned_summary=\"skip\", unresolved_items=[], huma
+n_disposition=\"ACCEPTED_FOR_TEST_COPY\", state_before
+=cdig, state_after=cdig, lifecycle_state=\"FINALIZED\"
+, seq=1, prev_event=e0, now_utc=REPRO_TS)\n        neg
+.append(False)\n    except ValueError: neg.append(True
+)\n    try:\n        record_collaboration_event(artifa
+ct_id=art, source_hash=sh, participant_alias=\"Rogue\"
+, task=\"disp\", returned_summary=\"disp\", unresolved
+_items=[], human_disposition=\"BOGUS\", state_before=N
+one, state_after=cdig, lifecycle_state=\"STAGED\", seq
+=0, now_utc=REPRO_TS)\n        neg.append(False)\n
+except ValueError: neg.append(True)\n    proof = {\"sc
+hema_version\": SCHEMA_VERSION, \"repro_ts\": REPRO_TS
+, \"abc_result\": res, \"preservation_errors\": perrs,
+ \"chain_valid\": ok, \"chain_errors\": errs, \"collab
+oration_chain\": chain, \"negative_tests_all_expected\
+": all(neg)}\n    Path(\"GENESIS/test_copy/abc_audit_v
+4_proof.json\").write_text(json.dumps(proof, indent=2,
+ sort_keys=True), encoding=\"utf-8\")\n    print(\"CLO
+SURE:\", res[\"c_state\"][\"closure_status\"], \"UNRES
+OLVED:\", res[\"c_state\"][\"unresolved_count\"])\n
+ print(\"PRESERVATION_OK:\", len(perrs) == 0, \"CHAIN_
+OK:\", ok, \"NEG_OK:\", all(neg))\n    print(\"PROOF_S
+HA256:\", sha256_of(proof))\n    return 0 if (not perr
+s and ok and all(neg))
+> python3 -c 'import pathlib; p=pathlib.Path("GENESIS/
+test_copy/test_abc_audit_v4.py"); p.write_text(p.read_
+text() + " else 1\n\nif __name__ == \"__main__\": rais
+e SystemExit(main())\n")' && python3 GENESIS/test_copy
+/test_abc_audit_v4.py
+bash: syntax error near unexpected token `('
+~ $ cat << 'EOF' >> GENESIS/test_copy/test_abc_audit_v
+4.py
+ else 1
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+EOF
+python3 GENESIS/test_copy/test_abc_audit_v4.py
+  File "/data/data/com.termux/files/home/GENESIS/test_
+copy/test_abc_audit_v4.py", line 105
+    else 1
+IndentationError: unexpected indent
+~ $ python3 -c 'import pathlib; p=pathlib.Path("GENESI
+S/test_copy/test_abc_audit_v4.py"); p.write_text(p.rea
+d_text().replace("\n else 1\n", "\n    else 1\n"))' &&
+ python3 GENESIS/test_copy/test_abc_audit_v4.py
+  File "/data/data/com.termux/files/home/GENESIS/test_
+copy/test_abc_audit_v4.py", line 105
+    else 1
+IndentationError: unexpected indent
+~ $ python3 -c 'import pathlib; p=pathlib.Path("GENESI
+S/test_copy/test_abc_audit_v4.py"); lines=p.read_text(
+).splitlines(); p.write_text("\n".join("    else 1" if
+ ln.strip() == "else 1" else ln for ln in lines) + "\n
+")' && python3 GENESIS/test_copy/test_abc_audit_v4.py
+  File "/data/data/com.termux/files/home/GENESIS/test_
+copy/test_abc_audit_v4.py", line 105
+    else 1
+IndentationError: unexpected indent
+~ $ python3 -c 'import pathlib; lines=pathlib.Path("GE
+NESIS/test_copy/test_abc_audit_v4.py").read_text().spl
+itlines(); print("\n".join(f"{i+1}: {repr(l)}" for i,l
+ in enumerate(lines[97:112], 97)))'
+98: '        else:'
+99: '            p = events[i - 1]'
+100: '            if ev.get("prev_event_sha256") != p.
+get("event_sha256") or ev.get("state_before") != p.get
+("state_after") or ev.get("artifact_id") != p.get("art
+ifact_id"): errs.append(f"[{i}] link")'
+101: '            if (p.get("lifecycle_state"), ev.get
+("lifecycle_state")) not in ALLOWED_LIFECYCLE_TRANSITI
+ONS: errs.append(f"[{i}] tr")'
+102: '    return (len(errs) == 0), errs'
+103: ''
+104: 'print("PIECE_3A_OK")'
+105: '    else 1'
+106: ''
+107: 'if __name__ == "__main__":'
+108: '    raise SystemExit(main())'
+~ $
+~ $ python3 -c 'import pathlib; p=pathlib.Path("GENESI
+S/test_copy/test_abc_audit_v4.py"); p.write_text("\n".
+join(p.read_text().splitlines()[:102]) + "\n")'
+cat << 'EOF' >> GENESIS/test_copy/test_abc_audit_v4.py
+
+
+def main() -> int:
+    a = {
+        "parcel_id": "DL-001",
+        "declared_status": "DELIVERED",
+        "weight_kg": 12.5,
+        "claims": [
+            {"key": "declared_status", "value": "DELIV
+ERED"},
+            {"key": "declared_status", "value": "IN_TR
+ANSIT"},
+        ],
+    }
+    b = [
+        {"key": "receiver_confirmed", "value": True},
+        {"key": "declared_status", "value": "RETURNED_
+TO_SENDER"},
+        {"key": "receiver_confirmed", "value": True},
+        {"key": "missing_value_field"},
+        {"key": "weight_kg", "value": 99.9, "corrupted
+": True},
+    ]
+    res = reconcile_abc(a, b)
+    unres = res["c_state"]["unresolved_open_container"
+]
+    perrs = verify_unresolved_preservation(a, b, unres
+)
+    cdig = res["c_digest"]
+    art = "GENESIS_SUBSTRATE_ADC02"
+    sh = "adcdae38ee4590e4a0d3d968e87e09d2bf205a434808
+caead3e6b66a576ece02"
+    e0 = record_collaboration_event(
+        artifact_id=art,
+        source_hash=sh,
+        participant_alias="ChatGPT_Reviewer",
+        task="v4 A+B=C audit",
+        returned_summary="Open container + chain",
+        unresolved_items=["T01-T11 pending"],
+        human_disposition="ACCEPTED_FOR_TEST_COPY",
+        state_before=None,
+        state_after=cdig,
+        lifecycle_state="STAGED",
+        seq=0,
+        now_utc=REPRO_TS,
+    )
+    e1 = record_collaboration_event(
+        artifact_id=art,
+        source_hash=sh,
+        participant_alias="Gemini_Reviewer",
+        task="v4 verify",
+        returned_summary="Chain verified",
+        unresolved_items=["T09/T11 pending"],
+        human_disposition="PENDING_HUMAN_RUN",
+        state_before=cdig,
+        state_after=cdig,
+        lifecycle_state="COMMITTED_PENDING_FINALIZE",
+        seq=1,
+        prev_event=e0,
+        now_utc=REPRO_TS,
+    )
+    e2 = record_collaboration_event(
+        artifact_id=art,
+        source_hash=sh,
+        participant_alias="Human_Operator",
+        task="v4 finalize",
+        returned_summary="Ready for isolated test",
+        unresolved_items=["head anchor pending"],
+        human_disposition="ACCEPTED_FOR_TEST_COPY",
+        state_before=cdig,
+        state_after=cdig,
+        lifecycle_state="FINALIZED",
+        seq=2,
+        prev_event=e1,
+        now_utc=REPRO_TS,
+    )
+    chain = [e0, e1, e2]
+    ok, errs = verify_chain(chain)
+    neg = []
+    m1 = copy.deepcopy(chain); m1[1]["returned_summary
+"] = "TAMPERED"
+    neg.append(not verify_chain(m1)[0])
+    m2 = copy.deepcopy(chain); m2[1]["returned_summary
+"] = "TAMPERED_REHASHED"
+    m2[1]["event_sha256"] = sha256_of({k: v for k, v i
+n m2[1].items() if k != "event_sha256"})
+    neg.append(not verify_chain(m2)[0])
+    m3 = copy.deepcopy(chain); del m3[1]
+    neg.append(not verify_chain(m3)[0])
+    m4 = copy.deepcopy(chain); m4[1], m4[2] = m4[2], m
+4[1]
+    neg.append(not verify_chain(m4)[0])
+    try:
+        record_collaboration_event(
+            artifact_id=art,
+            source_hash=sh,
+            participant_alias="Rogue",
+            task="skip",
+            returned_summary="skip",
+            unresolved_items=[],
+            human_disposition="ACCEPTED_FOR_TEST_COPY"
+,
+            state_before=cdig,
+            state_after=cdig,
+            lifecycle_state="FINALIZED",
+            seq=1,
+            prev_event=e0,
+            now_utc=REPRO_TS,
+        )
+        neg.append(False)
+    except ValueError:
+        neg.append(True)
+    try:
+        record_collaboration_event(
+            artifact_id=art,
+            source_hash=sh,
+            participant_alias="Rogue",
+            task="disp",
+            returned_summary="disp",
+            unresolved_items=[],
+            human_disposition="BOGUS",
+            state_before=None,
+            state_after=cdig,
+            lifecycle_state="STAGED",
+            seq=0,
+            now_utc=REPRO_TS,
+        )
+        neg.append(False)
+    except ValueError:
+        neg.append(True)
+    proof = {
+        "schema_version": SCHEMA_VERSION,
+        "repro_ts": REPRO_TS,
+        "abc_result": res,
+        "preservation_errors": perrs,
+        "chain_valid": ok,
+        "chain_errors": errs,
+        "collaboration_chain": chain,
+        "negative_tests_all_expected": all(neg),
+    }
+    Path("GENESIS/test_copy/abc_audit_v4_proof.json").
+write_text(
+        json.dumps(proof, indent=2, sort_keys=True), e
+ncoding="utf-8"
+    )
+    print("CLOSURE:", res["c_state"]["closure_status"]
+, "UNRESOLVED:", res["c_state"]["unresolved_count"])
+    print("PRESERVATION_OK:", len(perrs) == 0, "CHAIN_
+OK:", ok, "NEG_OK:", all(neg))
+    print("PROOF_SHA256:", sha256_of(proof))
+    return 0 if (not perrs and ok and all(neg)) else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+EOF
+python3 GENESIS/test_copy/test_abc_audit_v4.py
+CLOSURE: PARTIAL_WITH_OPEN_UNRESOLVED UNRESOLVED: 5
+PRESERVATION_OK: True CHAIN_OK: True NEG_OK: True
+PROOF_SHA256: f11b829370e40fdeef0ff976e0af52266bda4261
+507a7689c89e72d011fd038b
+~ $ tmux capture-pane -t genesis -p -S - > ~/GENESIS/t
+est_copy/tmux_genesis_2026-11-24.log && ls -lh ~/GENES
+IS/test_copy/
+

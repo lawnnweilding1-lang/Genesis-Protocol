@@ -1,390 +1,3 @@
-        
-        banner = s.recv(1024).decode('utf-8')
-        s.sendall((OVERRIDE_CODE + "\n").encode('utf-8'))
-        response = s.recv(1024).decode('utf-8')
-        
-        print(f"AUTHENTICATION: {response.strip()}")
-        print("\n--- ACTIVE INFRASTRUCTURE PIPELINE ---")
-        for key, name in INFRASTRUCTURE_NODES.items():
-            print(f"[{key}] {name:<30} [STATUS: ACTIVE]")
-        print("--------------------------------------------------")
-        print("BRIDGE STATUS: SECURE & FULLY OPERATIONAL")
-        print("==================================================")
-        s.close()
-    except Exception as e:
-        print(f"Bridge connection error: {e}")
-
-if __name__ == "__main__":
-    ignite_dashboard()
-EOF
-
-python3 genesis_dashboard.py
-cat << 'EOF' > genesis_dashboard.py
-import socket
-
-PORT = 7417
-OVERRIDE_CODE = "avaai"
-
-# Wedge Infrastructure Nodes [1] through [4]
-WEDGE_NODES = {
-    "[1]": "WEDGE-NODE-01 (Pipeline Core)",
-    "[2]": "WEDGE-NODE-02 (Ingestion Engine)",
-    "[3]": "WEDGE-NODE-03 (Processing Gateway)",
-    "[4]": "WEDGE-NODE-04 (FSA Portal Bridge)"
-}
-
-def ignite_dashboard():
-    print("==================================================")
-    print("      GENESIS LLC: WEDGE PIPELINE DASHBOARD       ")
-    print("==================================================")
-    print("Connecting to Workhorse Node on port 7417...")
-    
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(("127.0.0.1", PORT))
-        
-        banner = s.recv(1024).decode('utf-8')
-        s.sendall((OVERRIDE_CODE + "\n").encode('utf-8'))
-        response = s.recv(1024).decode('utf-8')
-        
-        print(f"AUTHENTICATION: {response.strip()}")
-        print("\n--- ACTIVE WEDGE PIPELINE NODES ---")
-        for key, name in WEDGE_NODES.items():
-            print(f"{key} {name:<35} [STATUS: ONLINE]")
-        print("--------------------------------------------------")
-        print("BRIDGE STATUS: SECURE & FULLY OPERATIONAL")
-        print("==================================================")
-        s.close()
-    except Exception as e:
-        print(f"Bridge connection error: {e}")
-
-if __name__ == "__main__":
-    ignite_dashboard()
-EOF
-
-python3 genesis_dashboard.py
-cat << 'EOF' > genesis_dashboard.py
-import socket
-import time
-
-PORT = 7417
-OVERRIDE_CODE = "avaai"
-
-WEDGE_NODES = {
-    "[1]": "WEDGE-NODE-01 (Pipeline Core)",
-    "[2]": "WEDGE-NODE-02 (Ingestion Engine)",
-    "[3]": "WEDGE-NODE-03 (Processing Gateway)",
-    "[4]": "WEDGE-NODE-04 (FSA Portal Bridge)"
-}
-
-def ignite_dashboard():
-    print("==================================================")
-    print("      GENESIS LLC: WEDGE PIPELINE DASHBOARD       ")
-    print("==================================================")
-    
-    while True:
-        try:
-            print("Scanning for Workhorse bridge on port 7417...")
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(3.0)
-            
-            # Use your Ubuntu workhorse IP here if connecting over Wi-Fi, 
-            # or keep 127.0.0.1 if using ADB port forwarding.
-            s.connect(("127.0.0.1", PORT))
-            s.settimeout(None)
-            
-            banner = s.recv(1024).decode('utf-8')
-            s.sendall((OVERRIDE_CODE + "\n").encode('utf-8'))
-            response = s.recv(1024).decode('utf-8')
-            
-            print(f"\n[BRIDGE LOCKED] AUTH: {response.strip()}")
-            print("--- ACTIVE WEDGE PIPELINE NODES ---")
-            for key, name in WEDGE_NODES.items():
-                print(f"{key} {name:<35} [STATUS: ONLINE]")
-            print("--------------------------------------------------")
-            print("BRIDGE STATUS: SECURE & FULLY OPERATIONAL")
-            print("==================================================")
-            s.close()
-            break  # Break loop on successful sync
-            
-        except (socket.timeout, ConnectionRefusedError, OSError):
-            print("Connection out of range or server offline. Retrying in 3 seconds...")
-            time.sleep(3)
-
-if __name__ == "__main__":
-    ignite_dashboard()
-EOF
-
-genesis_orchestrator.py
-cat << 'EOF' > genesis_orchestrator.py
-import hashlib, os, sys, socket, time, logging
-
-logging.basicConfig(level=logging.INFO, format="[%(asctime)s] [GENESIS-CORE] %(message)s")
-MASTER_OVERRIDE_HASH = hashlib.sha256(b"avaai").hexdigest()
-PORT = 7417
-
-def run_workhorse():
-    logging.info("INITIALIZING GENESIS LLC INFRASTRUCTURE ON PORT %d...", PORT)
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    
-    while True:
-        try:
-            s.bind(("0.0.0.0", PORT))
-            s.listen(5)
-            logging.info("WORKHORSE NODE ONLINE. Awaiting Master Controller...")
-            
-            while True:
-                conn, addr = s.accept()
-                logging.info("Incoming connection from: %s", addr)
-                conn.sendall(b"GENESIS LLC SECURE ROOM 7417 - ENTER OVERRIDE CODE:\n")
-                data = conn.recv(1024).decode('utf-8').strip()
-                
-                if hashlib.sha256(data.lower().encode('utf-8')).hexdigest() == MASTER_OVERRIDE_HASH:
-                    conn.sendall(b"ACCESS GRANTED: WELCOME BACK, BOSS.\n")
-                    logging.info("MASTER OVERRIDE ACCEPTED FROM %s.", addr)
-                else:
-                    conn.sendall(b"ACCESS DENIED.\n")
-                conn.close()
-        except Exception as e:
-            logging.error("Socket error: %s. Restarting bind in 3s...", e)
-            time.sleep(3)
-
-if __name__ == "__main__":
-    run_workhorse()
-EOF
-
-python3 genesis_orchestrator.py
-# 1. List available models on disk to ensure paths and directories align
-lms ls
-# 2. Load your primary GGUF model into memory 
-# (Replace with your exact model identifier or file path shown from 'lms ls')
-lms load qwen --gpu max
-# 3. Start the server daemon bound to 0.0.0.0 (all interfaces) with CORS enabled
-lms server start --bind 0.0.0.0 --cors true
-# 4. Run the local sanity check endpoint
-curl http://localhost:1234/v1/models
-cat << 'EOF' > bridge.sh
-#!/bin/bash
-
-# Configuration (Change these to match your Beelink machine)
-HOST_USER="your_username"
-HOST_IP="192.168.1.X"
-MODEL_ID="qwen" # Or your exact model identifier
-
-echo "[-] Establishing SSH bridge to Beelink ($HOST_IP)..."
-
-# This opens the SSH tunnel (-N keeps it open), forwards port 1234, 
-# and triggers the remote lms startup commands in the background
-ssh -N -L 1234:localhost:1234 "$HOST_USER@HOST_IP" &
-SSH_PID=$!
-
-echo "[-] Loading model ($MODEL_ID) and starting server on host..."
-ssh "$HOST_USER@HOST_IP" "lms load $MODEL_ID --gpu max && lms server start --bind 0.0.0.0 --cors true"
-
-echo "[+] Bridge active! Local endpoint ready at http://localhost:1234"
-echo "[-] Press Ctrl+C to tear down the bridge."
-
-# Keep script alive until you kill it, then cleanup the background tunnel
-trap "kill $SSH_PID; echo '[-] Bridge closed.';" EXIT
-wait $SSH_PID
-EOF
-
-chmod +x bridge.sh
-./bridge.sh
-pkg install -y openssh
-./bridge.sh
-cat << 'EOF' > bridge.sh
-#!/bin/bash
-
-# --- PUT YOUR ACTUAL DETAILS HERE ---
-HOST_USER="YOUR_USER"
-HOST_IP="YOUR_BEELINK_IP"
-MODEL_ID="qwen"
-# ------------------------------------
-
-echo "[-] Establishing SSH tunnel to Beelink ($HOST_IP)..."
-ssh -N -L 1234:localhost:1234 "$HOST_USER@$HOST_IP" &
-SSH_PID=$!
-
-echo "[-] Loading model ($MODEL_ID) and starting server on host..."
-ssh "$HOST_USER@$HOST_IP" "lms load $MODEL_ID --gpu max && lms server start --bind 0.0.0.0 --cors true"
-
-echo "[+] Bridge active! Local endpoint ready at http://localhost:1234"
-echo "[-] Press Ctrl+C to tear down the bridge."
-
-trap "kill $SSH_PID 2>/dev/null; echo '[-] Bridge closed.';" EXIT
-wait $SSH_PID
-EOF
-
-cat << 'EOF' > bridge.sh
-#!/bin/bash
-
-# --- AUTO-CONFIGURED ---
-HOST_USER="joshua-harry"
-HOSTNAME_TARGET="joshua-harry-SER"
-MODEL_ID="qwen"
-# -----------------------
-
-echo "[-] Searching local network for $HOSTNAME_TARGET..."
-
-# Try resolving via mDNS (.local) or hostname lookup
-HOST_IP=$(ping -c 1 "$HOSTNAME_TARGET.local" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
-if [ -z "$HOST_IP" ]; then
-    HOST_IP=$(ping -c 1 "$HOSTNAME_TARGET" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
-fi
-
-# Fallback: scan local subnet if direct resolution misses
-if [ -z "$HOST_IP" ]; then
-    echo "[-] Direct lookup failed, scanning local subnet..."
-    SUBNET=$(ip route | grep -oE 'src [0-9]+\.[0-9]+\.[0-9]+\.' | head -n 1 | awk '{print $2}')
-    if [ -z "$SUBNET" ]; then
-        SUBNET="192.168.1."
-    fi
-    for i in {1..254}; do
-        IP="${SUBNET}${i}"
-        if nc -z -w 1 "$IP" 22 2>/dev/null; then
-            if ssh -o ConnectTimeout=1 -o BatchMode=yes "$HOST_USER@$IP" exit 2>/dev/null; then
-                HOST_IP="$IP"
-                break
-            fi
-        fi
-    done
-fi
-
-if [ -z "$HOST_IP" ]; then
-    echo "[X] Could not automatically locate $HOSTNAME_TARGET. Ensure both devices are on the same Wi-Fi."
-    exit 1
-fi
-
-echo "[+] Located Beelink at: $HOST_IP"
-echo "[-] Establishing SSH tunnel..."
-ssh -N -L 1234:localhost:1234 "$HOST_USER@$HOST_IP" &
-SSH_PID=$!
-
-echo "[-] Loading model ($MODEL_ID) and starting server on host..."
-ssh "$HOST_USER@$HOST_IP" "lms load $MODEL_ID --gpu max && lms server start --bind 0.0.0.0 --cors true"
-
-echo "[+] Bridge active! Local endpoint ready at http://localhost:1234"
-echo "[-] Press Ctrl+C to tear down the bridge."
-
-trap "kill $SSH_PID 2>/dev/null; echo '[-] Bridge closed.';" EXIT
-wait $SSH_PID
-EOF
-
-chmod +x bridge.sh
-./bridge.sh
-ssh -o StrictHostKeyChecking=no -N -L 1234:localhost:1234 joshua-harry@192.168.1.83
-ssh -o StrictHostKeyChecking=no joshua-harry@192.168.1.83 "lms load qwen --gpu max && lms server start --bind 0.0.0.0 --cors true"
-ping -c 3 192.168.1.83
-echo "=== SYSTEM & KERNEL ===" && uname -r && lsb_release -a && echo -e "\n=== CPU & HARDWARE ===" && lscpu | grep -E "Model name|Architecture|CPU\(s\):" && echo -e "\n=== MEMORY USAGE ===" && free -h && echo -e "\n=== DISK SPACE ===" && df -h /
-python3 master_orchestrator.py
-import requests
-import json
-import socket
-# Genesis Framework: Custom Gateway Configuration
-GATEWAY_PORT = 7417
-LOCAL_ENDPOINT = f"http://localhost:{GATEWAY_PORT}/v1/chat/completions"
-HEADERS = {"Content-Type": "application/json"}
-def verify_and_build_gate(port):
-class MasterAgentController:
-if __name__ == "__main__":
-    verify_and_build_gate(GATEWAY_PORT)
-import requests
-import json
-import socket
-from http.server import HTTPServer, BaseHTTPRequestHandler
-# Genesis Framework: Secure Hardware-Bound Gateway (Port 7417)
-GATEWAY_PORT = 7417
-# This token must match the auth signature generated/held by your main B-Link node
-BLINK_AUTHORIZED_TOKEN = "blink-root-auth-7417-x99"
-class SecureGateHandler(BaseHTTPRequestHandler):
-def run_secure_gateway():
-cat << 'EOF' > secure_gate.py
-import requests
-import json
-import socket
-from http.server import HTTPServer, BaseHTTPRequestHandler
-
-GATEWAY_PORT = 7417
-BLINK_AUTHORIZED_TOKEN = "blink-root-auth-7417-x99"
-
-class SecureGateHandler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        auth_header = self.headers.get("Authorization")
-        expected_bearer = f"Bearer {BLINK_AUTHORIZED_TOKEN}"
-        
-        if not auth_header or auth_header != expected_bearer:
-            print(f"[!] ACCESS DENIED: Unauthorized payload attempt on port {GATEWAY_PORT}.")
-            self.send_response(401)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            response_data = {"error": "Unauthorized: B-Link hardware token validation failed."}
-            self.wfile.write(json.dumps(response_data).encode("utf-8"))
-            return
-
-        print(f"[✔] B-Link Auth Verified: Channel open on port {GATEWAY_PORT}.")
-        content_length = int(self.headers.get('Content-Length', 0))
-        post_data = self.rfile.read(content_length)
-        
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.end_headers()
-        reply = {"status": "success", "message": "Gate open. Command executed via B-Link authorization."}
-        self.wfile.write(json.dumps(reply).encode("utf-8"))
-
-def run_secure_gateway():
-    server_address = ('127.0.0.1', GATEWAY_PORT)
-    httpd = HTTPServer(server_address, SecureGateHandler)
-    print(f"[+] Secure Genesis Gate listening on port {GATEWAY_PORT}...")
-    print(f"[+] Locked to B-Link Node Authorization Token.")
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        print("\n[*] Shutting down secure gate.")
-        httpd.server_close()
-
-if __name__ == "__main__":
-    run_secure_gateway()
-EOF
-
-cat << 'EOF' > secure_gate.py
-import requests
-import json
-import socket
-from http.server import HTTPServer, BaseHTTPRequestHandler
-
-GATEWAY_PORT = 7417
-BLINK_AUTHORIZED_TOKEN = "blink-root-auth-7417-x99"
-
-class SecureGateHandler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        auth_header = self.headers.get("Authorization")
-        expected_bearer = f"Bearer {BLINK_AUTHORIZED_TOKEN}"
-        
-        if not auth_header or auth_header != expected_bearer:
-            print(f"[!] ACCESS DENIED: Unauthorized payload attempt on port {GATEWAY_PORT}.")
-            self.send_response(401)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            response_data = {"error": "Unauthorized: B-Link hardware token validation failed."}
-            self.wfile.write(json.dumps(response_data).encode("utf-8"))
-            return
-
-        print(f"[✔] B-Link Auth Verified: Channel open on port {GATEWAY_PORT}.")
-        content_length = int(self.headers.get('Content-Length', 0))
-        post_data = self.rfile.read(content_length)
-        
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.end_headers()
-        reply = {"status": "success", "message": "Gate open. Command executed via B-Link authorization."}
-        self.wfile.write(json.dumps(reply).encode("utf-8"))
-
-def run_secure_gateway():
-    server_address = ('127.0.0.1', GATEWAY_PORT)
-    httpd = HTTPServer(server_address, SecureGateHandler)
-    print(f"[+] Secure Genesis Gate listening on port {GATEWAY_PORT}...")
     print(f"[+] Locked to B-Link Node Authorization Token.")
     try:
         httpd.serve_forever()
@@ -498,3 +111,390 @@ security or missing dependencies.
 ​1. Close this terminal session
 ​Type exit
 exit
+cat << 'EOF' > src/lock_a.rs
+// src/lock_a.rs
+// Genesis Framework: Lock A 192-byte Consensus Domain & Error Precedence
+
+pub const LOCK_A_SIZE_BYTES: usize = 192;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TransitionError {
+    Structural = 1,
+    ParentLinkage = 2,
+    SequenceMonotonicity = 3,
+    EpochProgression = 4,
+    CommitmentUniqueness = 5,
+}
+
+pub struct LockADomain {
+    pub payload: [u8; LOCK_A_SIZE_BYTES],
+}
+
+impl LockADomain {
+    /// Initialize a new Lock A consensus domain block.
+    pub fn new(data: &[u8]) -> Result<Self, &'static str> {
+        if data.len() > LOCK_A_SIZE_BYTES {
+            return Err("Payload exceeds 192-byte Lock A domain limit");
+        }
+        let mut payload = [0u8; LOCK_A_SIZE_BYTES];
+        payload[..data.len()].copy_from_slice(data);
+        Ok(Self { payload })
+    }
+
+    /// Compute deterministic integrity digest for self-verification.
+    pub fn compute_digest(&self) -> u64 {
+        // Simple deterministic FNV-1a style hash or checksum accumulator
+        let mut hash: u64 = 0xcbf29ce484222325;
+        for &b in &self.payload {
+            hash ^= b as u64;
+            hash = hash.wrapping_mul(0x100000001b3);
+        }
+        hash
+    }
+}
+EOF
+
+mkdir -p src
+cat << 'EOF' > src/lock_a.rs
+// src/lock_a.rs
+// Genesis Framework: Lock A 192-byte Consensus Domain & Error Precedence
+
+pub const LOCK_A_SIZE_BYTES: usize = 192;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TransitionError {
+    Structural = 1,
+    ParentLinkage = 2,
+    SequenceMonotonicity = 3,
+    EpochProgression = 4,
+    CommitmentUniqueness = 5,
+}
+
+pub struct LockADomain {
+    pub payload: [u8; LOCK_A_SIZE_BYTES],
+}
+
+impl LockADomain {
+    pub fn new(data: &[u8]) -> Result<Self, &'static str> {
+        if data.len() > LOCK_A_SIZE_BYTES {
+            return Err("Payload exceeds 192-byte Lock A domain limit");
+        }
+        let mut payload = [0u8; LOCK_A_SIZE_BYTES];
+        payload[..data.len()].copy_from_slice(data);
+        Ok(Self { payload })
+    }
+
+    pub fn compute_digest(&self) -> u64 {
+        let mut hash: u64 = 0xcbf29ce484222325;
+        for &b in &self.payload {
+            hash ^= b as u64;
+            hash = hash.wrapping_mul(0x100000001b3);
+        }
+        hash
+    }
+}
+EOF
+
+cat << 'EOF' > src/lib.rs
+pub mod dslr;
+pub mod lock_a;
+EOF
+
+cat << 'EOF' > src/transition.rs
+// src/transition.rs
+// Genesis Framework: Strict Error Precedence State Transition Engine
+
+use crate::lock_a::{LockADomain, TransitionError};
+
+pub struct StateTransitionEngine;
+
+impl StateTransitionEngine {
+    pub fn validate_transition(
+        parent_link_valid: bool,
+        sequence_monotonic: bool,
+        epoch_progressed: bool,
+        commitment_unique: bool,
+    ) -> Result<(), TransitionError> {
+        // Enforce strict error precedence order:
+        // 1. Structural (Assumed valid if deserialized)
+        // 2. Parent Linkage
+        if !parent_link_valid {
+            return Err(TransitionError::ParentLinkage);
+        }
+        // 3. Sequence Monotonicity
+        if !sequence_monotonic {
+            return Err(TransitionError::SequenceMonotonicity);
+        }
+        // 4. Epoch Progression
+        if !epoch_progressed {
+            return Err(TransitionError::EpochProgression);
+        }
+        // 5. Commitment Uniqueness
+        if !commitment_unique {
+            return Err(TransitionError::CommitmentUniqueness);
+        }
+
+        Ok(())
+    }
+}
+EOF
+
+cat << 'EOF' > src/lib.rs
+pub mod dslr;
+pub mod lock_a;
+pub mod transition;
+EOF
+
+cargo check
+pkg install rust
+cat << 'EOF' > Cargo.toml
+[package]
+name = "genesis-protocol"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+EOF
+
+cargo check
+cat << 'EOF' > src/dslr.rs
+// src/dslr.rs
+// Genesis Framework: DSLR / GLIR Optical & Tensor Coordinate Mapping
+
+pub struct SpectrumCoordinate {
+    pub wavelength_nm: f32,
+    pub intensity: f32,
+    pub phase_angle: f32,
+}
+
+pub struct DSLRMapper;
+
+impl DSLRMapper {
+    pub fn map_byte_to_spectrum(byte: u8) -> SpectrumCoordinate {
+        let base_wavelength = 380.0;
+        let range = 400.0;
+        let normalized = (byte as f32) / 255.0;
+        let wavelength_nm = base_wavelength + (normalized * range);
+        let intensity = 1.0;
+        let phase_angle = normalized * std::f32::consts::TAU;
+
+        SpectrumCoordinate {
+            wavelength_nm,
+            intensity,
+            phase_angle,
+        }
+    }
+
+    pub fn canonicalize_payload(payload: &[u8]) -> Vec<SpectrumCoordinate> {
+        payload.iter().copied().map(Self::map_byte_to_spectrum).collect()
+    }
+}
+EOF
+
+cargo check
+git init
+git add .
+git commit -m "feat: initial Genesis Framework primitives (DSLR mapping, Lock A consensus, strict error precedence engine)"
+pkg install git
+git init
+git add .
+git commit -m "feat: initial Genesis Framework primitives (DSLR mapping, Lock A consensus, strict error precedence engine)"
+git remote add origin <your-repo-url>
+git branch -M main
+git push -u origin main
+git config user.name "Joshua Anthony Harry"
+git config user.email "lawnnweilding1@gmail.com"
+git add .
+git commit -m "feat: initial Genesis Framework primitives (DSLR mapping, Lock A consensus, strict error precedence engine)"
+git remote add origin https://github.com/YOUR_USERNAME/Genesis-Protocol.git
+git branch -M main
+git push -u origin main
+gh auth login
+pkg install gh -y
+gh auth login
+git remote set-url origin https://github.com/lawnnweilding1-lang/Genesis-Protocol.git
+git push -u origin main
+git pull origin main --allow-unrelated-histories
+git pull origin main --allow-unrelated-histories --no-rebase
+git push -u origin main
+pkg update && pkg install golang git -y
+tmux new -s genesis
+pkg install tmux -y
+tmux new -s genesis
+cat << 'EOF' > bridge.sh
+#!/bin/bash
+
+# Configuration
+HOST_USER="joshua-harry"
+HOSTNAME_TARGET="joshua-harry-SER"
+MODEL_ID="qwen"
+
+echo "[-] Searching local network for $HOSTNAME_TARGET..."
+
+# Try resolving host IP via mDNS or ping
+HOST_IP=$(ping -c 1 "$HOSTNAME_TARGET.local" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
+if [ -z "$HOST_IP" ]; then
+    HOST_IP=$(ping -c 1 "$HOSTNAME_TARGET" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
+fi
+
+# Fallback subnet scan if mDNS fails
+if [ -z "$HOST_IP" ]; then
+    echo "[-] Direct lookup failed, scanning local subnet..."
+    SUBNET=$(ip route | grep -oE 'src [0-9]+\.[0-9]+\.[0-9]+\.' | head -n 1 | awk '{print $2}')
+    if [ -z "$SUBNET" ]; then
+        SUBNET="192.168.1."
+    fi
+    for i in {1..254}; do
+        IP="${SUBNET}${i}"
+        if nc -z -w 1 "$IP" 22 2>/dev/null; then
+            if ssh -o ConnectTimeout=1 -o BatchMode=yes "$HOST_USER@$IP" exit 2>/dev/null; then
+                HOST_IP="$IP"
+                break
+            fi
+        fi
+    done
+fi
+
+if
+
+
+
+{"model": "qwen", "messages": [{"role": "user", "content": "ping"}]}
+curl -s http://localhost:1234/v1/chat/completions -H "Content-Type: application/json" -d '{"model": "qwen", "messages": [{"role": "user", "content": "Write the C# script for a Gorilla Tag player crown that locks to the head transform and adds a vertical bounce."}]}'
+\
+import socket, json
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+python3 -c "import socket, json; s = socket.socket(); s.connect(('127.0.0.1', 7417)); s.sendall(json.dumps({'node_id': 'genesis-c0:nc', 'status': 'packaged', 'action': 'shipment_ready'}).encode()); print(s.recv(4096).decode())"
+import requests
+def get_btc_address_utxos(address: str):
+def get_address_transactions(address: str):
+if __name__ == "__main__":;     target_addr = "16ihhYuCBHrewvvqyUa4epZTjT34J6reNh";     get_btc_address_utxos(target_addr)
+onano full_trace.py
+# Paste the script above, save and exit (Ctrl+O, Enter, Ctrl+X)
+python3 full_trace.py
+if __name__ == "__main__":;     target_addr = "16ihhYuCBHrewvvqyUa4epZTjT34J6reNh";     get_btc_address_utxos(target_addr)
+import json
+import urllib.request
+import urllib.error
+# Harri Application Endpoint / ATS Submission Route
+API_URL = "https://api.harri.com/v1/applications"
+# Candidate Profile Payload for Terminal Submission
+payload = {
+}
+def submit_application():
+if __name__ == "__main__":;     submit_application()
+cat << 'EOF' > apply.py
+import json
+import urllib.request
+import urllib.error
+API_URL = "https://api.harri.com/v1/applications"
+payload = {
+}
+def submit_application():
+if __name__ == "__main__":;     submit_application() EOF
+def submit_application():
+python3 --version
+sqlite3 --version
+git --version
+cd ~
+mkdir genesis
+cd genesis
+git init
+mkdir -p ws/chatgpt ws/deepseek ws/gemini
+touch ws/chatgpt/.gitkeep ws/deepseek/.gitkeep ws/gemini/.gitkeep
+echo "Genesis shared environment. See CONTRACT.md." > README.md
+echo "Frozen contract v0.1 - paste Parts 3-6 of the brief here." > CONTRACT.md
+mkdir -p ~/genesis-secrets
+openssl rand -hex 32 > ~/genesis-secrets/chatgpt.token
+openssl rand -hex 32 > ~/genesis-secrets/deepseek.token
+openssl rand -hex 32 > ~/genesis-secrets/gemini.token
+ls ~/genesis-secrets/
+pkg install sqlite openssl-tool
+openssl rand -hex 32 > ~/genesis-secrets/chatgpt.token
+openssl rand -hex 32 > ~/genesis-secrets/deepseek.token
+openssl rand -hex 32 > ~/genesis-secrets/gemini.token
+git branch -m main
+nano genesis_router_prototype.py
+head -n 5 genesis_router_prototype.py
+git add .
+git commit -m "Genesis scaffolding: folders, tokens, README, CONTRACT, prototype"
+git config --global user.name "Project Authority"
+git config --global user.email "authority@genesis.local"
+git commit -m "Genesis scaffolding: folders, tokens, README, CONTRACT, prototype"
+python3 genesis_router_prototype.py
+cd genesis
+curl -X POST http://localhost:7417/api/room/tasks -H "Authorization: Bearer genesis-auth-token-7417" -H "Content-Type: application/json" -d '{"sender": "human", "assignee": "chatgpt", "instruction": "T1: Build v0.1 server", "workspace": "ws/chatgpt/T1"}'
+curl -X POST http://localhost:7417/api/room/tasks -H "Authorization: Bearer genesis-auth-token-7417" -H "Content-Type: application/json" -d '{"sender": "human", "assignee": "deepseek", "instruction": "T2: Black-box test suite", "workspace": "ws/deepseek/T2"}'
+echo "================================"
+echo "GENESIS — NODE A DISCOVERY"
+echo "================================"
+echo ""
+echo "[1] DEVICE"
+uname -a
+echo ""
+echo "[2] TERMUX DIRECTORY"
+pwd
+echo ""
+echo "[3] GENESIS FILE DISCOVERY"
+find "$HOME" -maxdepth 5 -type f   \( -name "genesis_router.py"   -o -name "nodes.json"   -o -name "genesis.db"   -o -iname "*genesis*" \)   -print 2>/dev/null | head -80
+echo ""
+echo "[4] PYTHON VERSION"
+python3 --version 2>&1
+echo ""
+echo "[5] PORT 7417"
+(ss -ltn 2>/dev/null || true) | grep 7417 || echo "Nothing listening on 7417"
+echo ""
+echo "================================"
+echo "DISCOVERY COMPLETE"
+echo "================================"
+q
+DIR="/storage/emulated/0/Download/F5_Export/genesis-edge-network"
+echo "===== GENESIS NODE B ====="
+echo "===== EXPORT INVENTORY ====="
+if [ ! -d "$DIR" ]; then   echo "ERROR: Export directory not accessible";   exit 1; fi
+DIR="/storage/emulated/0/Download/F5_Export/genesis-edge-network"
+echo "===== GENESIS NODE B ====="
+echo "===== EXPORT INVENTORY ====="
+if [ ! -d "$DIR" ]; then   echo "ERROR: Export directory not accessible";   exit 1; fi
+echo "=== 1. GENESIS / OAUTH FILE PATHS ==="
+find "$HOME" -maxdepth 4 \( -iname "*genesis*" -o -iname "*oauth*" -o -iname "*room*" \) 2>/dev/null
+[ -d "$HOME/storage" ] && find "$HOME/storage" -maxdepth 3 \( -iname "*genesis*" -o -iname "*oauth*" -o -iname "*room*" \) 2>/dev/null
+echo -e "\n=== 2. ENV VARIABLE NAMES ONLY ==="
+env | cut -d= -f1 | grep -iE "genesis|room|oauth|auth|port|node|host|url|uri|endpoint" | sort -u
+echo -e "\n=== 3. CONFIG KEY NAMES (VALUES REDACTED) ==="
+find "$HOME" -maxdepth 4 \( -iname "*genesis*" -o -iname "*room*" -o -iname ".env*" \) -type f   ! -iname "*token*" ! -iname "*secret*" ! -iname "*key*" ! -iname "*cred*" ! -iname "*id_rsa*" 2>/dev/null | while read -r f; do   echo "--- File: $f ---";   grep -hE "^[[:space:]]*[A-Za-z0-9_.-]+[[:space:]]*(=|:)" "$f" 2>/dev/null | sed -E 's/[[:space:]]*(=|:).*/\1 <REDACTED>/'; done
+echo -e "\n=== 4. ACTIVE PROCESSES & LOCAL PORTS ==="
+ps -ef 2>/dev/null | grep -iE "node|python|ssh|genesis|room|oauth" | grep -v grep
+ss -tln 2>/dev/null || netstat -tln 2>/dev/null
+{   "$schema": "https://schemas.genesismusicprotocol.org/v1/asset-manifest.schema.json",;   "protocol": {;     "name": "Genesis Music Asset Protocol",;     "version": "1.0.0",;     "verification_status": "UNVERIFIED_TEMPLATE",;     "notice": "Cryptographic verification is pending. Hashes and signatures must be generated from finalized local master files.";   },;   "asset": {;     "asset_id": "GEN-MUSIC-000001-RMX01",;     "title": "SIM MODE (GENESIS REMIX)",;     "artist": "Tony T",;     "release_status": "Unreleased / Vault Edition",;     "asset_type": "Original remix / collaborative production",;     "genre": "New-school underground trap",;     "created_timestamp_utc": "2026-11-21T00:00:00Z",;     "sonic_markers": {;       "intro_signature": "Spoken ID ('Tony T.') + Collaboration Credit + 3-tone electronic signature + sub-bass impact",;       "structural_event": "Full-stop silence interruption post-second hook followed by digital pulse recovery",;       "outro_signature": "3-tone Genesis identifier + Spoken end-of-record tag";     }
+ss -ltnp | grep 8765
+whoami
+ss -ltn
+cat /proc/net/tcp
+ip -4 addr show
+curl -v --connect-timeout 3 http://127.0.0.1:8765/
+curl -v --connect-timeout 3 http://localhost:8765/
+hostname
+date
+curl -v --connect-timeout 3 http://127.0.0.1:8765/
+echo "=== GENESIS MASTER NODE ==="
+date -Iseconds
+echo "=== DEVICE ==="
+whoami
+getprop ro.product.model
+getprop ro.build.version.release
+echo "=== NETWORK ==="
+ip -4 addr 2>&1
+echo "=== LISTENER CHECK ==="
+curl -sS --connect-timeout 3 http://127.0.0.1:8765/ || echo "No local HTTP response"
+echo "=== PORT CHECK ==="
+nc -zv 127.0.0.1 8765 2>&1
+pkg update
+pkg install openssh
+sshd
+whoami
+ip -4 addr
+hostname -I
+ip addr show
+ip -4 addr show scope global
+ip addr show
